@@ -12,7 +12,7 @@ import (
 func main() {
 	// routes
 	http.HandleFunc("/health", middleware.LoggingMiddleware(handler.HealthCheck))
-	http.HandleFunc("/networktest", middleware.LoggingMiddleware(handler.NetworkTest))
+	http.HandleFunc("/networktest/icmp", middleware.LoggingMiddleware(handler.ICMPNetworkTest))
 
 	// server
 	port := ":8080"

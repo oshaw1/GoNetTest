@@ -10,7 +10,7 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func NetworkTest(w http.ResponseWriter, r *http.Request) {
+func ICMPNetworkTest(w http.ResponseWriter, r *http.Request) {
 	conf, err := config.Load("config/config.json")
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
