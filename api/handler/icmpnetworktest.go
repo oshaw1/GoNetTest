@@ -11,18 +11,18 @@ import (
 )
 
 func ICMPNetworkTest(w http.ResponseWriter, r *http.Request) {
-	conf, err := config.Load("config/config.json")
+	conf, err := config.NewConfig("config/config.json")
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	host, err := config.SetupHost(conf, r)
+	host, err := networkTesting.SetupHost(conf, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	port, err := config.SetupPort(conf, r)
+	port, err := networkTesting.SetupPort(conf, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

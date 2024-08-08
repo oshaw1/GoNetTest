@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/oshaw1/go-net-test/config"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 )
@@ -21,13 +22,8 @@ type TestResult struct {
 	AvgRTT   time.Duration
 }
 
-const (
-	count         = 5
-	protocolICMP  = 1
-	timeoutSecond = 1
-)
-
 func TestNetwork(host string, port int) (*TestResult, error) {
+	count, _, _ := getTestValues()
 	dst, err := net.ResolveIPAddr("ip4", host)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve IP address: %w", err)
@@ -66,6 +62,15 @@ func TestNetwork(host string, port int) (*TestResult, error) {
 	return result, nil
 }
 
+func getTestValues() (count int, protocolIMCP int, timeoutSecond time.Duration) {
+	config, err := config.NewConfig("config/config.json")
+	if err != nil {
+		fmt.Printf("failed to read config file defaulting to small values. caused by : %v", err)
+		return 5, 1, 1
+	}
+	return config.Count, config.ProtocolIMCP, time.Duration(config.TimeoutSecond)
+}
+
 func sendICMP(c *icmp.PacketConn, dst *net.IPAddr, sequence int) error {
 	wm := createICMPMessage(sequence)
 	wb, err := wm.Marshal(nil)
@@ -81,6 +86,7 @@ func sendICMP(c *icmp.PacketConn, dst *net.IPAddr, sequence int) error {
 }
 
 func receiveICMP(c *icmp.PacketConn) (*icmp.Message, error) {
+	_, protocolICMP, timeoutSecond := getTestValues()
 	err := c.SetReadDeadline(time.Now().Add(timeoutSecond * time.Second))
 	if err != nil {
 		return nil, fmt.Errorf("failed to set read deadline: %w", err)

@@ -1,4 +1,7 @@
 {
     "host": "localhost",
-    "port": 8080
+    "port": 8080,
+    "ICMP packets": 15,
+    "protocol IMCP": 1,
+    "Timeout Threshold (Seconds)":1
 }
