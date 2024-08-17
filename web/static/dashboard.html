@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network App Dashboard</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+    <link rel="stylesheet" href="/web/static/dashboard_style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="quadrant">
+            <h2>Recent Tests</h2>
+            <div id="recentTestCharts">
+                No recent test charts
+            </div>
+            <div id="recentTestData">
+                No recent tests
+            </div>
+            <div class="input-group">
+                <input type="text" name="host" placeholder="Enter IP (optional)" id="hostInput">
+                <input type="number" name="port" placeholder="Enter Port (optional)" id="portInput">
+                <button hx-get="http://localhost:8080/page/icmpreturn"
+                        hx-trigger="click"
+                        hx-include="#hostInput, #portInput"
+                        hx-target="#recentTestData"
+                        hx-swap="innerHTML"
+                        hx-ext="json-enc"
+                        hx-vals='js:{
+                            url: function() {
+                            var host = document.getElementById("hostInput").value;
+                            var port = document.getElementById("portInput").value;
+                            var baseUrl = "http://localhost:8080/page/icmpreturn";
+                            if (host && port) {
+                                return baseUrl + "?host=" + host + "&port=" + port;
+                            }
+                            return baseUrl;
+                            }
+                        }'>
+                    Run Test
+                </button>
+            </div>
+        </div>
+        <div class="quadrant">
+            <h2>Quadrant 2</h2>
+        </div>
+        <div class="quadrant">
+            <h2>Quadrant 3</h2>
+        </div>
+        <div class="quadrant">
+            <h2>Quadrant 4</h2>
+        </div>
+    </div>
+</body>
+</html>

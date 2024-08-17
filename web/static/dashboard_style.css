@@ -1,0 +1,77 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100%;
+}
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
+    height: 100vh;
+    padding: 1rem;
+    box-sizing: border-box;
+    background-color: #f0f0f0;
+}
+.quadrant {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+h2 {
+    margin-top: 0;
+    color: #333;
+    margin-bottom: 0.5rem
+}
+h3 {
+    display: block;
+    font-size: 1.17em;
+    margin-block-start: .5rem;
+    margin-block-end: .25em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    margin-top: .5rem;
+}
+input, button {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+input {
+    flex-grow: 1;
+}
+button {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
+}
+button:hover {
+    background-color: #0056b3;
+}
+#recentTestData {
+    height: 150px;
+    background-color: #f8f9fa;
+    border: .5px solid #e9ecef;
+    border-radius: 4px;
+    margin-top: .5rem;
+    overflow-y: auto;
+    padding: 0.25rem 0.5rem;
+}
+#recentTestCharts {
+    min-height: 350px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.5rem;
+}

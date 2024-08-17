@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/ipv4"
 )
 
-type TestResult struct {
+type ICMBTestResult struct {
 	Host     string
 	Port     int
 	Sent     int
@@ -22,7 +22,7 @@ type TestResult struct {
 	AvgRTT   time.Duration
 }
 
-func TestNetwork(host string, port int) (*TestResult, error) {
+func TestNetwork(host string, port int) (*ICMBTestResult, error) {
 	count, _, _ := getTestValues()
 	dst, err := net.ResolveIPAddr("ip4", host)
 	if err != nil {
@@ -35,7 +35,7 @@ func TestNetwork(host string, port int) (*TestResult, error) {
 	}
 	defer c.Close()
 
-	result := &TestResult{
+	result := &ICMBTestResult{
 		Host: host,
 		Port: port,
 		Sent: count,
@@ -118,7 +118,7 @@ func createICMPMessage(sequence int) icmp.Message {
 	}
 }
 
-func updateTestResult(result *TestResult, icmpType icmp.Type, rtt time.Duration) {
+func updateTestResult(result *ICMBTestResult, icmpType icmp.Type, rtt time.Duration) {
 	if icmpType == ipv4.ICMPTypeEchoReply {
 		result.Received++
 		if rtt < result.MinRTT || result.MinRTT == 0 {
@@ -133,7 +133,7 @@ func updateTestResult(result *TestResult, icmpType icmp.Type, rtt time.Duration)
 	}
 }
 
-func calculateAverageRTT(result *TestResult) {
+func calculateAverageRTT(result *ICMBTestResult) {
 	if result.Received > 0 {
 		result.AvgRTT /= time.Duration(result.Received)
 	}

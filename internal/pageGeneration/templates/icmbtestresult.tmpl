@@ -1,0 +1,22 @@
+{{/* icmbtestresult.tmpl */}}
+{{define "testResult"}}
+<div class="test-result">
+    <h3>ICMB Test Results for {{.Host}}:{{.Port}}</h3>
+    <ul>
+        <li>Packets: 
+            <ul>
+                <li>Sent = {{.Sent}}</li>
+                <li>Received = {{.Received}}</li>
+                <li>Lost = {{.Lost}} ({{printf "%.1f" .LossPercentage}}% loss)</li>
+            </ul>
+        </li>
+        <li>Return-trip times:
+            <ul>
+                <li>Minimum = {{.MinRTT}}</li>
+                <li>Maximum = {{.MaxRTT}}</li>
+                <li>Average = {{.AvgRTT}}</li>
+            </ul>
+        </li>
+    </ul>
+</div>
+{{end}}

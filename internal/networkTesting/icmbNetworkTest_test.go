@@ -59,24 +59,24 @@ func TestCreateICMPMessage(t *testing.T) {
 func TestUpdateTestResult(t *testing.T) {
 	tests := []struct {
 		name      string
-		initial   TestResult
+		initial   ICMBTestResult
 		icmpType  ipv4.ICMPType
 		rtt       time.Duration
-		wantFinal TestResult
+		wantFinal ICMBTestResult
 	}{
 		{
 			name:      "Successful ping",
-			initial:   TestResult{Sent: 1},
+			initial:   ICMBTestResult{Sent: 1},
 			icmpType:  ipv4.ICMPTypeEchoReply,
 			rtt:       100 * time.Millisecond,
-			wantFinal: TestResult{Sent: 1, Received: 1, Lost: 0, MinRTT: 100 * time.Millisecond, MaxRTT: 100 * time.Millisecond},
+			wantFinal: ICMBTestResult{Sent: 1, Received: 1, Lost: 0, MinRTT: 100 * time.Millisecond, MaxRTT: 100 * time.Millisecond},
 		},
 		{
 			name:      "Lost ping",
-			initial:   TestResult{Sent: 1, Received: 1},
+			initial:   ICMBTestResult{Sent: 1, Received: 1},
 			icmpType:  ipv4.ICMPTypeDestinationUnreachable,
 			rtt:       0,
-			wantFinal: TestResult{Sent: 1, Received: 1, Lost: 1},
+			wantFinal: ICMBTestResult{Sent: 1, Received: 1, Lost: 1},
 		},
 	}
 
@@ -104,18 +104,18 @@ func TestUpdateTestResult(t *testing.T) {
 func TestCalculateAverageRTT(t *testing.T) {
 	tests := []struct {
 		name      string
-		initial   TestResult
-		wantFinal TestResult
+		initial   ICMBTestResult
+		wantFinal ICMBTestResult
 	}{
 		{
 			name:      "Calculate average with received packets",
-			initial:   TestResult{Received: 3, AvgRTT: 300 * time.Millisecond},
-			wantFinal: TestResult{Received: 3, AvgRTT: 100 * time.Millisecond},
+			initial:   ICMBTestResult{Received: 3, AvgRTT: 300 * time.Millisecond},
+			wantFinal: ICMBTestResult{Received: 3, AvgRTT: 100 * time.Millisecond},
 		},
 		{
 			name:      "No received packets",
-			initial:   TestResult{Received: 0, AvgRTT: 300 * time.Millisecond},
-			wantFinal: TestResult{Received: 0, AvgRTT: 300 * time.Millisecond},
+			initial:   ICMBTestResult{Received: 0, AvgRTT: 300 * time.Millisecond},
+			wantFinal: ICMBTestResult{Received: 0, AvgRTT: 300 * time.Millisecond},
 		},
 	}
 
