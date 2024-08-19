@@ -1,19 +1,21 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/oshaw1/go-net-test/config"
+	"github.com/oshaw1/go-net-test/internal/dataManagment"
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
-	pagegeneration "github.com/oshaw1/go-net-test/internal/pageGeneration"
 )
 
-type PageHandler struct {
+type NetworkTestHandler struct {
 }
 
-func (h PageHandler) HandleICMPResult(w http.ResponseWriter, r *http.Request) {
+// this should use the data managment to save the results/the chart when that is done
+func (h NetworkTestHandler) HandleICMPNetworkTest(w http.ResponseWriter, r *http.Request) {
 	conf, err := config.NewConfig("config/config.json")
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
@@ -37,11 +39,12 @@ func (h PageHandler) HandleICMPResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html, err := pagegeneration.GenerateICMBTestResultHTML(result)
+	err = dataManagment.SaveICMBTestData(result)
 	if err != nil {
-		http.Error(w, "Error generating result", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error saving test result: %v", err), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(html))
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }

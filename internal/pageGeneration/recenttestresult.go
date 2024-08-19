@@ -1,4 +1,4 @@
-package pagegeneration
+package pageGeneration
 
 import (
 	"bytes"
@@ -9,15 +9,11 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-type TestResultWrapper struct {
-	networkTesting.ICMBTestResult
-}
-
 var testResultTemplate *template.Template
 
 func init() {
 	var err error
-	testResultTemplate, err = template.ParseFiles("internal/pageGeneration/templates/icmbtestresult.tmpl")
+	testResultTemplate, err = template.ParseFiles("internal/pageGeneration/templates/recenttestresult.tmpl")
 	if err != nil {
 		log.Printf("Error parsing template file: %v", err)
 		panic(err)
@@ -25,7 +21,7 @@ func init() {
 	log.Println("Template parsed successfully")
 }
 
-func GenerateICMBTestResultHTML(result *networkTesting.ICMBTestResult) (template.HTML, error) {
+func GenerateRecentTestResultHTML(result *networkTesting.ICMBTestResult) (template.HTML, error) {
 	var buf bytes.Buffer
 
 	data := struct {

@@ -15,13 +15,16 @@
             <div id="recentTestCharts">
                 No recent test charts
             </div>
-            <div id="recentTestData">
-                No recent tests
+            <div id="recentTestData"
+                 hx-get="http://localhost:8080/dashboard/recent-tests-data"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                Loading recent tests...
             </div>
             <div class="input-group">
                 <input type="text" name="host" placeholder="Enter IP (optional)" id="hostInput">
                 <input type="number" name="port" placeholder="Enter Port (optional)" id="portInput">
-                <button hx-get="http://localhost:8080/page/icmpreturn"
+                <button hx-get="http://localhost:8080/dashboard/runtest/icmb"
                         hx-trigger="click"
                         hx-include="#hostInput, #portInput"
                         hx-target="#recentTestData"
@@ -31,7 +34,7 @@
                             url: function() {
                             var host = document.getElementById("hostInput").value;
                             var port = document.getElementById("portInput").value;
-                            var baseUrl = "http://localhost:8080/page/icmpreturn";
+                            var baseUrl = "http://localhost:8080/dashboard/runtest/icmb";
                             if (host && port) {
                                 return baseUrl + "?host=" + host + "&port=" + port;
                             }
