@@ -1,7 +1,7 @@
 {{define "chartSection"}}
 <div id="recentTestCharts">
     {{if .HasData}}
-        <canvas id="recentTestChart"></canvas>
+        <img src="/data/{{.ChartImagePath}}" alt="Recent Test Chart" id="recentTestChart" class="chart">
     {{else}}
         <p> No recent test charts found... </p>
     {{end}}

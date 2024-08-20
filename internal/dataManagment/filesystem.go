@@ -35,60 +35,73 @@ func SaveICMBTestData(data *networkTesting.ICMBTestResult) error {
 	return nil
 }
 
-func CheckForRecentTestData(rootDir string, days int, fileExtension string) (bool, error) {
+func CheckForRecentTestData(rootDir string, days int, fileExtension string) (bool, string, error) {
 	cutoffTime := time.Now().AddDate(0, 0, -days)
 	return walkRootDirectory(rootDir, cutoffTime, fileExtension)
 }
 
-func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension string) (bool, error) {
+func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension string) (bool, string, error) {
 	hasRecentData := false
+	var mostRecentPath string
+	var mostRecentTime time.Time
+
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() && isDateFolder(info.Name()) {
-			recentData, err := checkDateFolder(path, cutoffTime, fileExtension)
+			recentData, filePath, err := checkDateFolder(path, cutoffTime, fileExtension)
 			if err != nil {
 				return err
 			}
 			if recentData {
 				hasRecentData = true
-				return filepath.SkipAll
+				fileTime := info.ModTime()
+				if fileTime.After(mostRecentTime) {
+					mostRecentTime = fileTime
+					mostRecentPath = filePath
+				}
 			}
 		}
 		return nil
 	})
 
-	if err != nil && err != filepath.SkipAll {
-		return false, err
+	if err != nil {
+		return false, "", err
 	}
-	return hasRecentData, nil
+	return hasRecentData, mostRecentPath, nil
 }
 
-func checkDateFolder(path string, cutoffTime time.Time, fileExtension string) (bool, error) {
+func checkDateFolder(path string, cutoffTime time.Time, fileExtension string) (bool, string, error) {
 	folderDate, err := time.Parse("2006-01-02", filepath.Base(path))
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 	if folderDate.After(cutoffTime) {
 		return checkForFiles(path, fileExtension)
 	}
-	return false, nil
+	return false, "", nil
 }
 
-func checkForFiles(path string, fileExtension string) (bool, error) {
-	hasJSON := false
+func checkForFiles(path string, fileExtension string) (bool, string, error) {
+	var mostRecentPath string
+	var mostRecentTime time.Time
+
 	err := filepath.Walk(path, func(subPath string, subInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if !subInfo.IsDir() && filepath.Ext(subInfo.Name()) == fileExtension {
-			hasJSON = true
-			return filepath.SkipAll
+			fileTime := subInfo.ModTime()
+			if fileTime.After(mostRecentTime) {
+				mostRecentTime = fileTime
+				mostRecentPath = subPath
+			}
 		}
 		return nil
 	})
-	return hasJSON, err
+
+	return mostRecentPath != "", mostRecentPath, err
 }
 
 func isDateFolder(name string) bool {

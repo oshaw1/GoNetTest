@@ -11,6 +11,8 @@ import (
 
 func main() {
 	fs := http.FileServer(http.Dir("web/static"))
+
+	http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data/output"))))
 	http.Handle("/web/static/", http.StripPrefix("/web/static/", fs))
 
 	networkTestHandler := &handler.NetworkTestHandler{}

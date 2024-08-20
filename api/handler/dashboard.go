@@ -27,8 +27,6 @@ func (h PageHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// change this in the future it should:
-// get the result from the datamanagment service
 func (h PageHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Request) {
 	// change this to retrieve the result
 	result, err := networkTesting.TestNetwork("localhost", 8080)
