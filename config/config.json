@@ -3,5 +3,6 @@
     "port": 8080,
     "ICMP packets": 150,
     "protocol IMCP": 1,
-    "Timeout Threshold (Seconds)":1
+    "Timeout Threshold (Seconds)":1,
+    "Recent Days (How many days should recent be)": 7
 }

@@ -21,7 +21,7 @@ func main() {
 	http.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))
 
 	http.HandleFunc("/dashboard/", middleware.LoggingMiddleware(pageHandler.ServeDashboard))
-	http.HandleFunc("/dashboard/recent-tests-data", middleware.LoggingMiddleware(pageHandler.GetRecentTestData))
+	http.HandleFunc("/dashboard/recent-tests-quadrant", middleware.LoggingMiddleware(pageHandler.GetRecentQuadrant))
 	http.HandleFunc("/dashboard/runtest/icmb", middleware.LoggingMiddleware(pageHandler.RunICMBTest))
 	//http.HandleFunc("/dashboard/recent-tests-charts", middleware.LoggingMiddleware(pageHandler.GetRecentTestCharts))
 

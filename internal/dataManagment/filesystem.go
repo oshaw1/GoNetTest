@@ -35,19 +35,19 @@ func SaveICMBTestData(data *networkTesting.ICMBTestResult) error {
 	return nil
 }
 
-func CheckForRecentTestData(rootDir string, days int) (bool, error) {
+func CheckForRecentTestData(rootDir string, days int, fileExtension string) (bool, error) {
 	cutoffTime := time.Now().AddDate(0, 0, -days)
-	return walkRootDirectory(rootDir, cutoffTime)
+	return walkRootDirectory(rootDir, cutoffTime, fileExtension)
 }
 
-func walkRootDirectory(rootDir string, cutoffTime time.Time) (bool, error) {
+func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension string) (bool, error) {
 	hasRecentData := false
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() && isDateFolder(info.Name()) {
-			recentData, err := checkDateFolder(path, cutoffTime)
+			recentData, err := checkDateFolder(path, cutoffTime, fileExtension)
 			if err != nil {
 				return err
 			}
@@ -65,21 +65,24 @@ func walkRootDirectory(rootDir string, cutoffTime time.Time) (bool, error) {
 	return hasRecentData, nil
 }
 
-func checkDateFolder(path string, cutoffTime time.Time) (bool, error) {
-	folderDate, _ := time.Parse("2006-01-02", filepath.Base(path))
+func checkDateFolder(path string, cutoffTime time.Time, fileExtension string) (bool, error) {
+	folderDate, err := time.Parse("2006-01-02", filepath.Base(path))
+	if err != nil {
+		return false, err
+	}
 	if folderDate.After(cutoffTime) {
-		return checkForJSONFiles(path)
+		return checkForFiles(path, fileExtension)
 	}
 	return false, nil
 }
 
-func checkForJSONFiles(path string) (bool, error) {
+func checkForFiles(path string, fileExtension string) (bool, error) {
 	hasJSON := false
 	err := filepath.Walk(path, func(subPath string, subInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !subInfo.IsDir() && filepath.Ext(subInfo.Name()) == ".json" {
+		if !subInfo.IsDir() && filepath.Ext(subInfo.Name()) == fileExtension {
 			hasJSON = true
 			return filepath.SkipAll
 		}

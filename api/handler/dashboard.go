@@ -29,53 +29,19 @@ func (h PageHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 // change this in the future it should:
-// get the data from the datamanagment service
-// return that html
-func (h PageHandler) GetRecentTestData(w http.ResponseWriter, r *http.Request) {
-
-	dataExists, err := dataManagment.CheckForRecentTestData("data/output", 7)
-
-	if err != nil {
-		log.Fatalf("Failed to check recent test data: %v", err)
-	}
-
-	if !dataExists {
-		html, err := pageGeneration.ReturnNoDataHTML()
-		if err != nil {
-			http.Error(w, "Error returning no data", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(html))
-		return
-	}
+// get the result from the datamanagment service
+func (h PageHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Request) {
 	// change this to retrieve the result
-	conf, err := config.NewConfig("config/config.json")
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
-
-	host, err := networkTesting.SetupHost(conf, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	port, err := networkTesting.SetupPort(conf, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	result, err := networkTesting.TestNetwork(host, port)
+	result, err := networkTesting.TestNetwork("localhost", 8080)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error performing network test: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	html, err := pageGeneration.GenerateRecentTestResultHTML(result)
+	html, err := pageGeneration.GenerateRecentQuadrantHTML(result)
 	if err != nil {
 		http.Error(w, "Error generating result", http.StatusInternalServerError)
+		log.Fatal(err)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
@@ -121,9 +87,10 @@ func (h PageHandler) RunICMBTest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html, err := pageGeneration.GenerateRecentTestResultHTML(result)
+	html, err := pageGeneration.GenerateRecentQuadrantHTML(result)
 	if err != nil {
 		http.Error(w, "Error generating result", http.StatusInternalServerError)
+		log.Fatal(err)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")

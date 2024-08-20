@@ -1,0 +1,9 @@
+{{define "chartSection"}}
+<div id="recentTestCharts">
+    {{if .HasData}}
+        <canvas id="recentTestChart"></canvas>
+    {{else}}
+        <p> No recent test charts found... </p>
+    {{end}}
+</div>
+{{end}}

@@ -11,6 +11,7 @@ type Config struct {
 	Count         int    `json:"ICMP packets"`
 	ProtocolIMCP  int    `json:"protocol IMCP"`
 	TimeoutSecond int    `json:"Timeout Threshold (Seconds)"`
+	RecentDays    int    `json:"Recent Days (How many days should recent be)"`
 }
 
 func NewConfig(filepath string) (*Config, error) {
