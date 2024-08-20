@@ -102,7 +102,7 @@ func checkForFiles(path string, fileExtension string) (bool, string, error) {
 		}
 		if !subInfo.IsDir() && filepath.Ext(subInfo.Name()) == fileExtension {
 			fileTime := subInfo.ModTime()
-			if fileTime.After(mostRecentTime) {
+			if mostRecentPath == "" || fileTime.After(mostRecentTime) {
 				mostRecentTime = fileTime
 				mostRecentPath = subPath
 			}

@@ -9,7 +9,7 @@ import (
 )
 
 func ParseRecentTestJSON() (*networkTesting.ICMBTestResult, error) {
-	dataExists, path, err := CheckForRecentTestData("/data/output", ".json")
+	dataExists, path, err := CheckForRecentTestData("data/output", ".json")
 	if err != nil {
 		return nil, err
 	}
