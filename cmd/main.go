@@ -4,12 +4,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/oshaw1/go-net-test/api/handler"
 	"github.com/oshaw1/go-net-test/api/middleware"
 )
 
+func initialiseDataDir() {
+	err := os.MkdirAll("data/output/", 0755)
+	if err != nil {
+		log.Fatalf("failed to create directory structure: %e", err)
+	}
+}
+
 func main() {
+	initialiseDataDir()
 	fs := http.FileServer(http.Dir("web/static"))
 
 	http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data/output"))))
@@ -23,9 +32,8 @@ func main() {
 	http.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))
 
 	http.HandleFunc("/dashboard/", middleware.LoggingMiddleware(pageHandler.ServeDashboard))
-	http.HandleFunc("/dashboard/recent-tests-quadrant", middleware.LoggingMiddleware(pageHandler.GetRecentQuadrant))
 	http.HandleFunc("/dashboard/runtest/icmb", middleware.LoggingMiddleware(pageHandler.RunICMBTest))
-	//http.HandleFunc("/dashboard/recent-tests-charts", middleware.LoggingMiddleware(pageHandler.GetRecentTestCharts))
+	http.HandleFunc("/dashboard/recent-tests-quadrant", middleware.LoggingMiddleware(pageHandler.GetRecentQuadrant))
 
 	http.HandleFunc("/networktest/icmp", middleware.LoggingMiddleware(networkTestHandler.HandleICMPNetworkTest))
 

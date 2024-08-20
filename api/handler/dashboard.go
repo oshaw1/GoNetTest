@@ -28,17 +28,16 @@ func (h PageHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h PageHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Request) {
-	// change this to retrieve the result
-	result, err := networkTesting.TestNetwork("localhost", 8080)
+	result, err := dataManagment.ParseRecentTestJSON()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error performing network test: %v", err), http.StatusInternalServerError)
+		http.Error(w, "Error parsing recent results", http.StatusInternalServerError)
+		log.Printf("Error parsing recent results, Caused by: %v", err)
 		return
 	}
 
 	html, err := pageGeneration.GenerateRecentQuadrantHTML(result)
 	if err != nil {
 		http.Error(w, "Error generating result", http.StatusInternalServerError)
-		log.Fatal(err)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")

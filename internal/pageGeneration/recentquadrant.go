@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/oshaw1/go-net-test/config"
 	"github.com/oshaw1/go-net-test/internal/dataManagment"
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
@@ -38,17 +37,12 @@ func init() {
 }
 
 func GenerateRecentQuadrantHTML(result *networkTesting.ICMBTestResult) (template.HTML, error) {
-	conf, err := config.NewConfig("config/config.json")
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
-
-	chartHTML, err := generateChartHTML(conf.RecentDays)
+	chartHTML, err := generateChartHTML()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate chart html: %v", err)
 	}
 
-	dataHTML, err := generateDataSectionHTML(result, conf.RecentDays)
+	dataHTML, err := generateDataSectionHTML(result)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate data section html: %v", err)
 	}
@@ -70,8 +64,8 @@ func GenerateRecentQuadrantHTML(result *networkTesting.ICMBTestResult) (template
 	return template.HTML(buf.String()), nil
 }
 
-func generateChartHTML(daysBack int) (template.HTML, error) {
-	dataExists, imagePath, err := dataManagment.CheckForRecentTestData("data/output", daysBack, ".jpg")
+func generateChartHTML() (template.HTML, error) {
+	dataExists, imagePath, err := dataManagment.CheckForRecentTestData("data/output", ".jpg")
 	if err != nil {
 		return "", fmt.Errorf("failed to check recent test data: %v", err)
 	}
@@ -95,8 +89,8 @@ func generateChartHTML(daysBack int) (template.HTML, error) {
 	return template.HTML(buf.String()), nil
 }
 
-func generateDataSectionHTML(result *networkTesting.ICMBTestResult, daysBack int) (template.HTML, error) {
-	dataExists, _, err := dataManagment.CheckForRecentTestData("data/output", daysBack, ".json")
+func generateDataSectionHTML(result *networkTesting.ICMBTestResult) (template.HTML, error) {
+	dataExists, _, err := dataManagment.CheckForRecentTestData("data/output", ".json")
 	if err != nil {
 		log.Printf("Error checking for recent test data: %v", err)
 		return "", fmt.Errorf("failed to check recent test data: %v", err)

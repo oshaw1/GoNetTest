@@ -15,8 +15,7 @@ body, html {
     background-color: #f0f0f0;
 }
 .chart {
-    max-width: 700px;
-    max-height: 450px;
+    max-height: 350px;
 }
 .quadrant {
     background-color: white;
@@ -73,7 +72,11 @@ button:hover {
     padding: 0.25rem 0.5rem;
 }
 #recentTestCharts {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     min-height: 350px;
+    max-height: 350px;
     background-color: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 4px;

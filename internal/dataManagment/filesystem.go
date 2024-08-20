@@ -3,12 +3,16 @@ package dataManagment
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/oshaw1/go-net-test/config"
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
+
+const dateFormat = "2006-01-02"
 
 func SaveICMBTestData(data *networkTesting.ICMBTestResult) error {
 	now := time.Now()
@@ -35,8 +39,12 @@ func SaveICMBTestData(data *networkTesting.ICMBTestResult) error {
 	return nil
 }
 
-func CheckForRecentTestData(rootDir string, days int, fileExtension string) (bool, string, error) {
-	cutoffTime := time.Now().AddDate(0, 0, -days)
+func CheckForRecentTestData(rootDir string, fileExtension string) (bool, string, error) {
+	conf, err := config.NewConfig("config/config.json")
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+	cutoffTime := time.Now().AddDate(0, 0, -conf.RecentDays)
 	return walkRootDirectory(rootDir, cutoffTime, fileExtension)
 }
 
@@ -54,13 +62,14 @@ func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension strin
 			if err != nil {
 				return err
 			}
-			if recentData {
-				hasRecentData = true
-				fileTime := info.ModTime()
-				if fileTime.After(mostRecentTime) {
-					mostRecentTime = fileTime
-					mostRecentPath = filePath
-				}
+			if !recentData {
+				return nil
+			}
+			hasRecentData = true
+			fileTime := info.ModTime()
+			if fileTime.After(mostRecentTime) {
+				mostRecentTime = fileTime
+				mostRecentPath = filePath
 			}
 		}
 		return nil
@@ -73,7 +82,7 @@ func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension strin
 }
 
 func checkDateFolder(path string, cutoffTime time.Time, fileExtension string) (bool, string, error) {
-	folderDate, err := time.Parse("2006-01-02", filepath.Base(path))
+	folderDate, err := time.Parse(dateFormat, filepath.Base(path))
 	if err != nil {
 		return false, "", err
 	}
@@ -105,12 +114,12 @@ func checkForFiles(path string, fileExtension string) (bool, string, error) {
 }
 
 func isDateFolder(name string) bool {
-	_, err := time.Parse("2006-01-02", name)
+	_, err := time.Parse(dateFormat, name)
 	return err == nil
 }
 
 func generateFilePath(baseDir string, now time.Time, folder string) (string, error) {
-	dateFolder := now.Format("2006-01-02")
+	dateFolder := now.Format(dateFormat)
 	dir := filepath.Join(baseDir, dateFolder, folder)
 
 	err := os.MkdirAll(dir, 0755)
