@@ -14,15 +14,15 @@ type NetworkTestHandler struct {
 
 // this should use the data managment to save the results/the chart when that is done
 func (h NetworkTestHandler) HandleICMPNetworkTest(w http.ResponseWriter, r *http.Request) {
-	host, port := networkTesting.GetNetworkParams(r)
+	host := networkTesting.GetHost(r)
 
-	result, err := networkTesting.TestNetwork(host, port)
+	result, err := networkTesting.TestNetwork(host)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error performing network test: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	err = dataManagment.SaveICMBTestData(result)
+	err = dataManagment.SaveTestData(result, "icmb")
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error saving test result: %v", err), http.StatusInternalServerError)
 		return

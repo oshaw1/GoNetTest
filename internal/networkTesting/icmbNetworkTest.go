@@ -22,7 +22,7 @@ type ICMBTestResult struct {
 	AvgRTT   time.Duration
 }
 
-func TestNetwork(host string, port int) (*ICMBTestResult, error) {
+func TestNetwork(host string) (*ICMBTestResult, error) {
 	count, _, _ := getTestValues()
 	dst, err := net.ResolveIPAddr("ip4", host)
 	if err != nil {
@@ -37,7 +37,6 @@ func TestNetwork(host string, port int) (*ICMBTestResult, error) {
 
 	result := &ICMBTestResult{
 		Host: host,
-		Port: port,
 		Sent: count,
 	}
 

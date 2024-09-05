@@ -1,23 +1,22 @@
 {{define "recentQuadrant"}}
     <h2>Recent Tests</h2>
+    <button id="refreshButton" hx-target="#recent-quadrant" hx-swap="innerHTML" hx-get="http://localhost:7000/dashboard/recent-tests-quadrant">Refresh</button>
     {{.ChartSection}}
     {{.DataSection}}
     <div class="input-group">
         <input type="text" name="host" placeholder="Enter IP (optional)" id="hostInput">
-        <input type="number" name="port" placeholder="Enter Port (optional)" id="portInput">
-        <button hx-get="http://localhost:8080/dashboard/runtest/icmb"
+        <button hx-get="http://localhost:7000/dashboard/runtest/icmb"
                 hx-trigger="click"
-                hx-include="#hostInput, #portInput"
+                hx-include="#hostInput"
                 hx-target="#recent-quadrant"
                 hx-swap="innerHTML"
                 hx-ext="json-enc"
                 hx-vals='js:{
                     url: function() {
                     var host = document.getElementById("hostInput").value;
-                    var port = document.getElementById("portInput").value;
-                    var baseUrl = "http://localhost:8080/dashboard/runtest/icmb";
-                    if (host && port) {
-                        return baseUrl + "?host=" + host + "&port=" + port;
+                    var baseUrl = "http://localhost:7000/dashboard/runtest/icmb";
+                    if (host) {
+                        return baseUrl + "?host=" + host;
                     }
                     return baseUrl;
                     }

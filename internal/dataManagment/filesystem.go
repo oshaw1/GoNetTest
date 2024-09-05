@@ -6,26 +6,42 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"time"
 
 	"github.com/oshaw1/go-net-test/config"
-	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
 const dateFormat = "2006-01-02"
 
-func SaveICMBTestData(data *networkTesting.ICMBTestResult) error {
+func SaveTestData(data interface{}, test string) error {
 	now := time.Now()
 
-	dir, err := generateFilePath("data/output/", now, "icmb")
+	dir, err := generateFilePath("data/output/", now, test)
 	if err != nil {
 		return err
 	}
 
-	filename := getUniqueFilename("icmb", dir, now)
+	filename := getUniqueFilename(test, dir, now)
 	fullPath := filepath.Join(dir, filename)
 
-	jsonData, err := json.MarshalIndent(data, "", "  ")
+	// Check if data is a pointer and get its underlying value
+	value := reflect.ValueOf(data)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+
+	// Convert the data to a map
+	var dataMap map[string]interface{}
+	if value.Kind() == reflect.Struct {
+		dataMap = structToMap(value)
+	} else if value.Kind() == reflect.Map {
+		dataMap = data.(map[string]interface{})
+	} else {
+		return fmt.Errorf("unsupported data type: %v", value.Kind())
+	}
+
+	jsonData, err := json.MarshalIndent(dataMap, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal data to JSON: %w", err)
 	}
@@ -37,6 +53,16 @@ func SaveICMBTestData(data *networkTesting.ICMBTestResult) error {
 
 	fmt.Printf("Data saved successfully to: %s\n", fullPath)
 	return nil
+}
+
+func structToMap(value reflect.Value) map[string]interface{} {
+	result := make(map[string]interface{})
+	for i := 0; i < value.NumField(); i++ {
+		field := value.Type().Field(i)
+		fieldValue := value.Field(i)
+		result[field.Name] = fieldValue.Interface()
+	}
+	return result
 }
 
 func CheckForRecentTestData(rootDir string, fileExtension string) (bool, string, error) {

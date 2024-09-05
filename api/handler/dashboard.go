@@ -45,15 +45,15 @@ func (h PageHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h PageHandler) RunICMBTest(w http.ResponseWriter, r *http.Request) {
-	host, port := networkTesting.GetNetworkParams(r)
+	host := networkTesting.GetHost(r)
 
-	result, err := networkTesting.TestNetwork(host, port)
+	result, err := networkTesting.TestNetwork(host)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error performing network test: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	err = dataManagment.SaveICMBTestData(result)
+	err = dataManagment.SaveTestData(result, "icmb")
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error saving test result: %v", err), http.StatusInternalServerError)
 		return
@@ -62,7 +62,6 @@ func (h PageHandler) RunICMBTest(w http.ResponseWriter, r *http.Request) {
 	html, err := pageGeneration.GenerateRecentQuadrantHTML(result)
 	if err != nil {
 		http.Error(w, "Error generating result", http.StatusInternalServerError)
-		log.Fatal(err)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")

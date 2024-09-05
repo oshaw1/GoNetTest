@@ -6,7 +6,6 @@ import (
 )
 
 type Config struct {
-	Port          int    `json:"port"`
 	Host          string `json:"host"`
 	Count         int    `json:"ICMP packets"`
 	ProtocolIMCP  int    `json:"protocol IMCP"`

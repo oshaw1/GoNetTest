@@ -24,12 +24,12 @@ body, html {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 h2 {
+    display: inline;
     margin-top: 0;
     color: #333;
     margin-bottom: 0.5rem
 }
 h3 {
-    display: block;
     font-size: 1.17em;
     margin-block-start: .5rem;
     margin-block-end: .25em;
@@ -76,9 +76,25 @@ button:hover {
     justify-content: center;
     align-items: center;
     min-height: 350px;
+    margin-right: .5rem;
     max-height: 350px;
     background-color: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 4px;
     padding: 0.5rem;
+}
+
+#refreshButton {
+    background-color: #f8f9fa; /* Add a background color for contrast */
+    border: 1px solid #e9ecef;
+    color: darkgrey;
+    cursor: pointer;
+    float: right; /* This will align the button to the right */
+    margin-top: -.5rem;
+    margin-right: .5rem;
+}
+
+#refreshButton:hover {
+    color: white;
+    background-color: #0056b3;
 }
