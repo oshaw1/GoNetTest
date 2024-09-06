@@ -28,23 +28,37 @@ func (h PageHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h PageHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Request) {
-	result, err := dataManagment.ParseRecentTestJSON()
-	if err != nil {
-		http.Error(w, "Error parsing recent results", http.StatusInternalServerError)
-		log.Printf("Error parsing recent results, Caused by: %v", err)
+	testTypes := []string{"icmp"} // Add more test types as needed
+	var results []interface{}
+
+	for _, testType := range testTypes {
+		if testType == "icmp" {
+			result, err := dataManagment.GetRecentICMPTestResult(testType)
+			if err != nil {
+				log.Print("Error getting recent test result")
+			}
+			results = append(results, result)
+			continue // Skip this test type if there's an error
+		}
+	}
+
+	if len(results) == 0 {
+		http.Error(w, "No recent test results available", http.StatusNotFound)
 		return
 	}
 
-	html, err := pageGeneration.GenerateRecentQuadrantHTML(result)
+	html, err := pageGeneration.GenerateRecentQuadrantHTML(results)
 	if err != nil {
 		http.Error(w, "Error generating result", http.StatusInternalServerError)
+		log.Printf("Error generating result: %v", err)
 		return
 	}
+
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(html))
 }
 
-func (h PageHandler) RunICMBTest(w http.ResponseWriter, r *http.Request) {
+func (h PageHandler) RunICMPTest(w http.ResponseWriter, r *http.Request) {
 	host := networkTesting.GetHost(r)
 
 	result, err := networkTesting.TestNetwork(host)
@@ -52,14 +66,14 @@ func (h PageHandler) RunICMBTest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error performing network test: %v", err), http.StatusInternalServerError)
 		return
 	}
-
-	err = dataManagment.SaveTestData(result, "icmb")
+	var resultInterface interface{} = result
+	err = dataManagment.SaveTestData(result, "icmp")
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error saving test result: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	html, err := pageGeneration.GenerateRecentQuadrantHTML(result)
+	html, err := pageGeneration.GenerateRecentQuadrantHTML([]interface{}{resultInterface})
 	if err != nil {
 		http.Error(w, "Error generating result", http.StatusInternalServerError)
 		return

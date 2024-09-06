@@ -12,14 +12,14 @@ import (
 )
 
 type ICMPTestResult struct {
-	Host     string
-	Port     int
-	Sent     int
-	Received int
-	Lost     int
-	MinRTT   time.Duration
-	MaxRTT   time.Duration
-	AvgRTT   time.Duration
+	Host      string
+	Sent      int
+	Received  int
+	Lost      int
+	MinRTT    time.Duration
+	MaxRTT    time.Duration
+	AvgRTT    time.Duration
+	Timestamp time.Time
 }
 
 func TestNetwork(host string) (*ICMPTestResult, error) {
@@ -48,8 +48,9 @@ func TestNetwork(host string) (*ICMPTestResult, error) {
 
 func performICMPTest(c *icmp.PacketConn, dst *net.IPAddr, count int) (*ICMPTestResult, error) {
 	result := &ICMPTestResult{
-		Host: dst.String(),
-		Sent: count,
+		Host:      dst.String(),
+		Sent:      count,
+		Timestamp: time.Now(),
 	}
 
 	responses := make(chan *icmpResponse, count)

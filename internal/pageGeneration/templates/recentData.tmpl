@@ -2,7 +2,7 @@
 <div id="recentTestData">
     {{if .HasData}}
         <div class="test-result">
-            <h3>ICMB Test Results for {{.ICMPTestResult.Host}}:{{.ICMPTestResult.Port}}</h3>
+            <h3>ICMP Test Results for {{.ICMPTestResult.Host}} on: {{.ICMPTestResult.Timestamp.Format "Jan 02, 2006 15:04:05 MST"}}</h3>
             <ul>
                 <li>Packets: 
                     <ul>

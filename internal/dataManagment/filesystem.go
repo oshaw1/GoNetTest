@@ -25,13 +25,11 @@ func SaveTestData(data interface{}, test string) error {
 	filename := getUniqueFilename(test, dir, now)
 	fullPath := filepath.Join(dir, filename)
 
-	// Check if data is a pointer and get its underlying value
 	value := reflect.ValueOf(data)
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}
 
-	// Convert the data to a map
 	var dataMap map[string]interface{}
 	if value.Kind() == reflect.Struct {
 		dataMap = structToMap(value)
@@ -55,6 +53,27 @@ func SaveTestData(data interface{}, test string) error {
 	return nil
 }
 
+func ReturnRecentTestDataPath(rootDir string, testType string, fileExtension string) (bool, string, error) {
+	conf, err := config.NewConfig("config/config.json")
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+	cutoffTime := time.Now().AddDate(0, 0, -conf.RecentDays)
+	return walkRootDirectory(rootDir, cutoffTime, fileExtension, testType)
+}
+
+func ReturnDataPaths(date string, testType string, rootDir string, fileExtension string) (bool, []string, error) {
+	targetDate, err := time.Parse(dateFormat, date)
+	if err != nil {
+		return false, nil, fmt.Errorf("invalid date format: %w", err)
+	}
+	hasData, paths, err := walkDirectories(rootDir, targetDate, testType, fileExtension)
+	if err != nil {
+		return false, nil, fmt.Errorf("error walking directory: %w", err)
+	}
+	return hasData, paths, nil
+}
+
 func structToMap(value reflect.Value) map[string]interface{} {
 	result := make(map[string]interface{})
 	for i := 0; i < value.NumField(); i++ {
@@ -65,16 +84,52 @@ func structToMap(value reflect.Value) map[string]interface{} {
 	return result
 }
 
-func CheckForRecentTestData(rootDir string, fileExtension string) (bool, string, error) {
-	conf, err := config.NewConfig("config/config.json")
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
-	cutoffTime := time.Now().AddDate(0, 0, -conf.RecentDays)
-	return walkRootDirectory(rootDir, cutoffTime, fileExtension)
+func walkDirectories(rootDir string, targetDate time.Time, testType string, fileExtension string) (bool, []string, error) {
+	var paths []string
+	hasData := false
+	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return nil
+		}
+		folderDate, err := time.Parse(dateFormat, info.Name())
+		if err != nil || !folderDate.Equal(targetDate) {
+			return nil
+		}
+		testTypePath := filepath.Join(path, testType)
+		if _, err := os.Stat(testTypePath); os.IsNotExist(err) {
+			return nil
+		}
+		hasDataInFolder, pathsInFolder, err := collectFilesInFolder(testTypePath, fileExtension)
+		if err != nil {
+			return err
+		}
+		paths = append(paths, pathsInFolder...)
+		hasData = hasData || hasDataInFolder
+		return filepath.SkipDir
+	})
+	return hasData, paths, err
 }
 
-func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension string) (bool, string, error) {
+func collectFilesInFolder(folderPath string, fileExtension string) (bool, []string, error) {
+	var paths []string
+	hasData := false
+	err := filepath.Walk(folderPath, func(subPath string, subInfo os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !subInfo.IsDir() && filepath.Ext(subInfo.Name()) == fileExtension {
+			paths = append(paths, subPath)
+			hasData = true
+		}
+		return nil
+	})
+	return hasData, paths, err
+}
+
+func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension string, testType string) (bool, string, error) {
 	hasRecentData := false
 	var mostRecentPath string
 	var mostRecentTime time.Time
@@ -84,7 +139,7 @@ func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension strin
 			return err
 		}
 		if info.IsDir() && isDateFolder(info.Name()) {
-			recentData, filePath, err := checkDateFolder(path, cutoffTime, fileExtension)
+			recentData, filePath, err := checkDateFolder(path, cutoffTime, fileExtension, testType)
 			if err != nil {
 				return err
 			}
@@ -107,13 +162,13 @@ func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension strin
 	return hasRecentData, mostRecentPath, nil
 }
 
-func checkDateFolder(path string, cutoffTime time.Time, fileExtension string) (bool, string, error) {
+func checkDateFolder(path string, cutoffTime time.Time, fileExtension string, testType string) (bool, string, error) {
 	folderDate, err := time.Parse(dateFormat, filepath.Base(path))
 	if err != nil {
 		return false, "", err
 	}
 	if folderDate.After(cutoffTime) {
-		return checkForFiles(path, fileExtension)
+		return checkForFiles(filepath.Join(path, testType), fileExtension)
 	}
 	return false, "", nil
 }

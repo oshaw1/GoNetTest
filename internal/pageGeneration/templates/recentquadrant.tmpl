@@ -5,7 +5,7 @@
     {{.DataSection}}
     <div class="input-group">
         <input type="text" name="host" placeholder="Enter IP (optional)" id="hostInput">
-        <button hx-get="http://localhost:7000/dashboard/runtest/icmb"
+        <button hx-get="http://localhost:7000/dashboard/runtest/icmp"
                 hx-trigger="click"
                 hx-include="#hostInput"
                 hx-target="#recent-quadrant"
@@ -14,7 +14,7 @@
                 hx-vals='js:{
                     url: function() {
                     var host = document.getElementById("hostInput").value;
-                    var baseUrl = "http://localhost:7000/dashboard/runtest/icmb";
+                    var baseUrl = "http://localhost:7000/dashboard/runtest/icmp";
                     if (host) {
                         return baseUrl + "?host=" + host;
                     }

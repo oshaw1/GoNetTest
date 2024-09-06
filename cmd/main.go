@@ -7,6 +7,7 @@ import (
 
 	"github.com/oshaw1/go-net-test/api/handler"
 	"github.com/oshaw1/go-net-test/api/middleware"
+	"github.com/oshaw1/go-net-test/internal/pageGeneration"
 )
 
 func initDataDir() {
@@ -18,6 +19,7 @@ func initDataDir() {
 
 func main() {
 	initDataDir()
+	pageGeneration.InitTemplates()
 	fs := http.FileServer(http.Dir("web/static"))
 	// file server
 	http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data/output"))))
@@ -30,10 +32,11 @@ func main() {
 	http.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))
 
 	http.HandleFunc("/dashboard/", middleware.LoggingMiddleware(pageHandler.ServeDashboard))
-	http.HandleFunc("/dashboard/runtest/icmb", middleware.LoggingMiddleware(pageHandler.RunICMBTest))
+	http.HandleFunc("/dashboard/runtest/icmp", middleware.LoggingMiddleware(pageHandler.RunICMPTest))
 	http.HandleFunc("/dashboard/recent-tests-quadrant", middleware.LoggingMiddleware(pageHandler.GetRecentQuadrant))
 
 	http.HandleFunc("/networktest/icmp", middleware.LoggingMiddleware(networkTestHandler.HandleICMPNetworkTest))
+	http.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))
 
 	// server
 	port := ":7000"
