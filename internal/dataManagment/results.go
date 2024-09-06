@@ -8,7 +8,7 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func ParseRecentTestJSON() (*networkTesting.ICMBTestResult, error) {
+func ParseRecentTestJSON() (*networkTesting.ICMPTestResult, error) {
 	dataExists, path, err := CheckForRecentTestData("data/output", ".json")
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func ParseRecentTestJSON() (*networkTesting.ICMBTestResult, error) {
 		return nil, err
 	}
 
-	var result *networkTesting.ICMBTestResult
+	var result *networkTesting.ICMPTestResult
 	err = json.Unmarshal(content, &result)
 	if err != nil {
 		return nil, err

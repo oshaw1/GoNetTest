@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +9,7 @@ import (
 	"github.com/oshaw1/go-net-test/api/middleware"
 )
 
-func initialiseDataDir() {
+func initDataDir() {
 	err := os.MkdirAll("data/output/", 0755)
 	if err != nil {
 		log.Fatalf("failed to create directory structure: %e", err)
@@ -18,7 +17,7 @@ func initialiseDataDir() {
 }
 
 func main() {
-	initialiseDataDir()
+	initDataDir()
 	fs := http.FileServer(http.Dir("web/static"))
 	// file server
 	http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data/output"))))
@@ -38,7 +37,7 @@ func main() {
 
 	// server
 	port := ":7000"
-	fmt.Printf("Server starting on port %s\n", port)
+	log.Printf("Server starting on port %s\n", port)
 	if err := http.ListenAndServe(port, nil); err != nil {
 		log.Fatal(err)
 	}

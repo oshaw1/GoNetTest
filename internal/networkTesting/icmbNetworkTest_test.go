@@ -59,24 +59,24 @@ func TestCreateICMPMessage(t *testing.T) {
 func TestUpdateTestResult(t *testing.T) {
 	tests := []struct {
 		name      string
-		initial   ICMBTestResult
+		initial   ICMPTestResult
 		icmpType  ipv4.ICMPType
 		rtt       time.Duration
-		wantFinal ICMBTestResult
+		wantFinal ICMPTestResult
 	}{
 		{
 			name:      "Successful ping",
-			initial:   ICMBTestResult{Sent: 1},
+			initial:   ICMPTestResult{Sent: 1},
 			icmpType:  ipv4.ICMPTypeEchoReply,
 			rtt:       100 * time.Millisecond,
-			wantFinal: ICMBTestResult{Sent: 1, Received: 1, Lost: 0, MinRTT: 100 * time.Millisecond, MaxRTT: 100 * time.Millisecond},
+			wantFinal: ICMPTestResult{Sent: 1, Received: 1, Lost: 0, MinRTT: 100 * time.Millisecond, MaxRTT: 100 * time.Millisecond},
 		},
 		{
 			name:      "Lost ping",
-			initial:   ICMBTestResult{Sent: 1, Received: 1},
+			initial:   ICMPTestResult{Sent: 1, Received: 1},
 			icmpType:  ipv4.ICMPTypeDestinationUnreachable,
 			rtt:       0,
-			wantFinal: ICMBTestResult{Sent: 1, Received: 1, Lost: 1},
+			wantFinal: ICMPTestResult{Sent: 1, Received: 1, Lost: 1},
 		},
 	}
 
@@ -104,18 +104,18 @@ func TestUpdateTestResult(t *testing.T) {
 func TestCalculateAverageRTT(t *testing.T) {
 	tests := []struct {
 		name      string
-		initial   ICMBTestResult
-		wantFinal ICMBTestResult
+		initial   ICMPTestResult
+		wantFinal ICMPTestResult
 	}{
 		{
 			name:      "Calculate average with received packets",
-			initial:   ICMBTestResult{Received: 3, AvgRTT: 300 * time.Millisecond},
-			wantFinal: ICMBTestResult{Received: 3, AvgRTT: 100 * time.Millisecond},
+			initial:   ICMPTestResult{Received: 3, AvgRTT: 300 * time.Millisecond},
+			wantFinal: ICMPTestResult{Received: 3, AvgRTT: 100 * time.Millisecond},
 		},
 		{
 			name:      "No received packets",
-			initial:   ICMBTestResult{Received: 0, AvgRTT: 300 * time.Millisecond},
-			wantFinal: ICMBTestResult{Received: 0, AvgRTT: 300 * time.Millisecond},
+			initial:   ICMPTestResult{Received: 0, AvgRTT: 300 * time.Millisecond},
+			wantFinal: ICMPTestResult{Received: 0, AvgRTT: 300 * time.Millisecond},
 		},
 	}
 

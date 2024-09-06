@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sync"
 	"time"
 
-	"github.com/oshaw1/go-net-test/config"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 )
 
-type ICMBTestResult struct {
+type ICMPTestResult struct {
 	Host     string
 	Port     int
 	Sent     int
@@ -22,8 +22,11 @@ type ICMBTestResult struct {
 	AvgRTT   time.Duration
 }
 
-func TestNetwork(host string) (*ICMBTestResult, error) {
-	count, _, _ := getTestValues()
+func TestNetwork(host string) (*ICMPTestResult, error) {
+	count, err := getTestValue[int]("Count")
+	if err != nil {
+		return nil, err
+	}
 	dst, err := net.ResolveIPAddr("ip4", host)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve IP address: %w", err)
@@ -35,25 +38,48 @@ func TestNetwork(host string) (*ICMBTestResult, error) {
 	}
 	defer c.Close()
 
-	result := &ICMBTestResult{
-		Host: host,
+	result, err := performICMPTest(c, dst, count)
+	if err != nil {
+		return nil, fmt.Errorf("error performing icmp test")
+	}
+
+	return result, nil
+}
+
+func performICMPTest(c *icmp.PacketConn, dst *net.IPAddr, count int) (*ICMPTestResult, error) {
+	result := &ICMPTestResult{
+		Host: dst.String(),
 		Sent: count,
 	}
 
+	responses := make(chan *icmpResponse, count)
+	var wg sync.WaitGroup
+
 	for i := 0; i < count; i++ {
-		start := time.Now()
+		wg.Add(1)
+		go func(seq int) {
+			defer wg.Done()
+			start := time.Now()
+			if err := sendICMP(c, dst, seq); err != nil {
+				responses <- &icmpResponse{err: err}
+				return
+			}
+			rm, err := receiveICMP(c)
+			rtt := time.Since(start)
+			responses <- &icmpResponse{rm: rm, rtt: rtt, err: err}
+		}(i)
+	}
 
-		if err := sendICMP(c, dst, i); err != nil {
-			return nil, err
-		}
+	go func() {
+		wg.Wait()
+		close(responses)
+	}()
 
-		rm, err := receiveICMP(c)
-		rtt := time.Since(start)
-
-		if err != nil {
+	for resp := range responses {
+		if resp.err != nil {
 			result.Lost++
 		} else {
-			updateTestResult(result, rm.Type, rtt)
+			updateTestResult(result, resp.rm.Type, resp.rtt)
 		}
 	}
 
@@ -61,13 +87,10 @@ func TestNetwork(host string) (*ICMBTestResult, error) {
 	return result, nil
 }
 
-func getTestValues() (count int, protocolIMCP int, timeoutSecond time.Duration) {
-	config, err := config.NewConfig("config/config.json")
-	if err != nil {
-		fmt.Printf("failed to read config file defaulting to small values. caused by : %v", err)
-		return 5, 1, 1
-	}
-	return config.Count, config.ProtocolIMCP, time.Duration(config.TimeoutSecond)
+type icmpResponse struct {
+	rm  *icmp.Message
+	rtt time.Duration
+	err error
 }
 
 func sendICMP(c *icmp.PacketConn, dst *net.IPAddr, sequence int) error {
@@ -85,8 +108,18 @@ func sendICMP(c *icmp.PacketConn, dst *net.IPAddr, sequence int) error {
 }
 
 func receiveICMP(c *icmp.PacketConn) (*icmp.Message, error) {
-	_, protocolICMP, timeoutSecond := getTestValues()
-	err := c.SetReadDeadline(time.Now().Add(timeoutSecond * time.Second))
+	protocolICMP, err := getTestValue[int]("ProtocolICMP")
+	if err != nil {
+		return nil, err
+	}
+
+	timeoutSecond, err := getTestValue[int]("TimeoutSecond")
+	if err != nil {
+		return nil, err
+	}
+
+	timeout := time.Duration(timeoutSecond) * time.Second
+	err = c.SetReadDeadline(time.Now().Add(timeout * time.Second))
 	if err != nil {
 		return nil, fmt.Errorf("failed to set read deadline: %w", err)
 	}
@@ -117,7 +150,7 @@ func createICMPMessage(sequence int) icmp.Message {
 	}
 }
 
-func updateTestResult(result *ICMBTestResult, icmpType icmp.Type, rtt time.Duration) {
+func updateTestResult(result *ICMPTestResult, icmpType icmp.Type, rtt time.Duration) {
 	if icmpType == ipv4.ICMPTypeEchoReply {
 		result.Received++
 		if rtt < result.MinRTT || result.MinRTT == 0 {
@@ -132,7 +165,7 @@ func updateTestResult(result *ICMBTestResult, icmpType icmp.Type, rtt time.Durat
 	}
 }
 
-func calculateAverageRTT(result *ICMBTestResult) {
+func calculateAverageRTT(result *ICMPTestResult) {
 	if result.Received > 0 {
 		result.AvgRTT /= time.Duration(result.Received)
 	}

@@ -2,20 +2,20 @@
 <div id="recentTestData">
     {{if .HasData}}
         <div class="test-result">
-            <h3>ICMB Test Results for {{.ICMBTestResult.Host}}:{{.ICMBTestResult.Port}}</h3>
+            <h3>ICMB Test Results for {{.ICMPTestResult.Host}}:{{.ICMPTestResult.Port}}</h3>
             <ul>
                 <li>Packets: 
                     <ul>
-                        <li>Sent = {{.ICMBTestResult.Sent}}</li>
-                        <li>Received = {{.ICMBTestResult.Received}}</li>
-                        <li>Lost = {{.ICMBTestResult.Lost}} ({{printf "%.1f" .LossPercentage}}% loss)</li>
+                        <li>Sent = {{.ICMPTestResult.Sent}}</li>
+                        <li>Received = {{.ICMPTestResult.Received}}</li>
+                        <li>Lost = {{.ICMPTestResult.Lost}} ({{printf "%.1f" .LossPercentage}}% loss)</li>
                     </ul>
                 </li>
                 <li>Return-trip times:
                     <ul>
-                        <li>Minimum = {{.ICMBTestResult.MinRTT}}</li>
-                        <li>Maximum = {{.ICMBTestResult.MaxRTT}}</li>
-                        <li>Average = {{.ICMBTestResult.AvgRTT}}</li>
+                        <li>Minimum = {{.ICMPTestResult.MinRTT}}</li>
+                        <li>Maximum = {{.ICMPTestResult.MaxRTT}}</li>
+                        <li>Average = {{.ICMPTestResult.AvgRTT}}</li>
                     </ul>
                 </li>
             </ul>

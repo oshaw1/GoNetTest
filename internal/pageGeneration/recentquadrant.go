@@ -36,7 +36,7 @@ func init() {
 	log.Println("Templates parsed successfully")
 }
 
-func GenerateRecentQuadrantHTML(result *networkTesting.ICMBTestResult) (template.HTML, error) {
+func GenerateRecentQuadrantHTML(result *networkTesting.ICMPTestResult) (template.HTML, error) {
 	chartHTML, err := generateChartHTML()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate chart html: %v", err)
@@ -89,7 +89,7 @@ func generateChartHTML() (template.HTML, error) {
 	return template.HTML(buf.String()), nil
 }
 
-func generateDataSectionHTML(result *networkTesting.ICMBTestResult) (template.HTML, error) {
+func generateDataSectionHTML(result *networkTesting.ICMPTestResult) (template.HTML, error) {
 	dataExists, _, err := dataManagment.CheckForRecentTestData("data/output", ".json")
 	if err != nil {
 		log.Printf("Error checking for recent test data: %v", err)
@@ -99,11 +99,11 @@ func generateDataSectionHTML(result *networkTesting.ICMBTestResult) (template.HT
 	var buf bytes.Buffer
 	data := struct {
 		HasData        bool
-		ICMBTestResult *networkTesting.ICMBTestResult
+		ICMPTestResult *networkTesting.ICMPTestResult
 		LossPercentage float64
 	}{
 		HasData:        dataExists,
-		ICMBTestResult: result,
+		ICMPTestResult: result,
 		LossPercentage: lossPercentage(result),
 	}
 
@@ -116,7 +116,7 @@ func generateDataSectionHTML(result *networkTesting.ICMBTestResult) (template.HT
 	return template.HTML(buf.String()), nil
 }
 
-func lossPercentage(tr *networkTesting.ICMBTestResult) float64 {
+func lossPercentage(tr *networkTesting.ICMPTestResult) float64 {
 	if tr == nil || tr.Sent == 0 {
 		return 0
 	}
