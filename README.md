@@ -11,7 +11,7 @@ go build cmd/main.go
 docker build -t go-net-test-app . ;
 docker run --network host -p 7000:7000 go-net-test-app
 ```
-## System Architecture Diagram -
+## Low Level System Architecture Diagram -
 ![Network Testing Webapp System ARCH](https://github.com/user-attachments/assets/d4563d27-be0a-4aad-b78e-80f2e9b19865)
 
 ## Application Flow Diagram -
