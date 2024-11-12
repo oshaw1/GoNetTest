@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/oshaw1/go-net-test/internal/charting"
 	"github.com/oshaw1/go-net-test/internal/dataManagment"
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
@@ -23,9 +24,21 @@ func (h NetworkTestHandler) HandleICMPNetworkTest(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = dataManagment.SaveTestData(result, "icmp")
+	testDataFilename, err := dataManagment.SaveTestData(result, "icmp")
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error saving test result: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	chart, err := charting.IcmpPieChart(*result)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error creating pie chart: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	err = dataManagment.SavePieChart(chart, "icmp", testDataFilename)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error saving pie chart: %v", err), http.StatusInternalServerError)
 		return
 	}
 

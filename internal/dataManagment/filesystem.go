@@ -14,12 +14,12 @@ import (
 
 const dateFormat = "2006-01-02"
 
-func SaveTestData(data interface{}, test string) error {
+func SaveTestData(data interface{}, test string) (string, error) {
 	now := time.Now()
 
 	dir, err := generateFilePath("data/output/", now, test)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	filename := getUniqueFilename(test, dir, now)
@@ -36,21 +36,21 @@ func SaveTestData(data interface{}, test string) error {
 	} else if value.Kind() == reflect.Map {
 		dataMap = data.(map[string]interface{})
 	} else {
-		return fmt.Errorf("unsupported data type: %v", value.Kind())
+		return "", fmt.Errorf("unsupported data type: %v", value.Kind())
 	}
 
 	jsonData, err := json.MarshalIndent(dataMap, "", "  ")
 	if err != nil {
-		return fmt.Errorf("failed to marshal data to JSON: %w", err)
+		return "", fmt.Errorf("failed to marshal data to JSON: %w", err)
 	}
 
 	err = os.WriteFile(fullPath, jsonData, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to write data to file: %w", err)
+		return "", fmt.Errorf("failed to write data to file: %w", err)
 	}
 
 	fmt.Printf("Data saved successfully to: %s\n", fullPath)
-	return nil
+	return fullPath, nil
 }
 
 func ReturnRecentTestDataPath(rootDir string, testType string, fileExtension string) (bool, string, error) {
@@ -59,7 +59,7 @@ func ReturnRecentTestDataPath(rootDir string, testType string, fileExtension str
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 	cutoffTime := time.Now().AddDate(0, 0, -conf.RecentDays)
-	return walkRootDirectory(rootDir, cutoffTime, fileExtension, testType)
+	return walkRootDirectoryForRecent(rootDir, cutoffTime, fileExtension, testType)
 }
 
 func ReturnDataPaths(date string, testType string, rootDir string, fileExtension string) (bool, []string, error) {
@@ -129,7 +129,7 @@ func collectFilesInFolder(folderPath string, fileExtension string) (bool, []stri
 	return hasData, paths, err
 }
 
-func walkRootDirectory(rootDir string, cutoffTime time.Time, fileExtension string, testType string) (bool, string, error) {
+func walkRootDirectoryForRecent(rootDir string, cutoffTime time.Time, fileExtension string, testType string) (bool, string, error) {
 	hasRecentData := false
 	var mostRecentPath string
 	var mostRecentTime time.Time

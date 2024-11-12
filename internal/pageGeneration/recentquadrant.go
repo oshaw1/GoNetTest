@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	"path/filepath"
+	"os"
 	"strings"
 
 	"github.com/oshaw1/go-net-test/internal/dataManagment"
@@ -91,9 +91,9 @@ func returnChartSectionHTML(result interface{}) (template.HTML, error) {
 	case *networkTesting.ICMPTestResult:
 		chartHtml, err = generateICMPChartHTML()
 	// case *networkTesting.TCPTestResult:
-	// 	dataHTML, err = generateTCPDataSectionHTML(v)
+	//     dataHTML, err = generateTCPDataSectionHTML(v)
 	// case *networkTesting.UDPTestResult:
-	// 	dataHTML, err = generateUDPDataSectionHTML(v)
+	//     dataHTML, err = generateUDPDataSectionHTML(v)
 	// Add more cases for other test types as needed
 	default:
 		return "", fmt.Errorf("unsupported test result type: %T", result)
@@ -107,26 +107,48 @@ func returnChartSectionHTML(result interface{}) (template.HTML, error) {
 }
 
 func generateICMPChartHTML() (template.HTML, error) {
-	dataExists, imagePath, err := dataManagment.ReturnRecentTestDataPath("data/output", "icmp", ".jpg")
+	dataExists, filePath, err := dataManagment.ReturnRecentTestDataPath("data/output", "icmp", ".html")
 	if err != nil {
 		return "", fmt.Errorf("failed to check recent test data: %v", err)
 	}
 
-	imagePath = strings.TrimPrefix(filepath.ToSlash(imagePath), "data/output/")
-
-	var buf bytes.Buffer
-	data := struct {
-		HasData        bool
-		ChartImagePath string
-	}{
-		HasData:        dataExists,
-		ChartImagePath: imagePath,
+	if !dataExists {
+		var buf bytes.Buffer
+		data := struct {
+			HasData   bool
+			ChartHTML template.HTML
+		}{
+			HasData: false,
+		}
+		err = chartTemplate.ExecuteTemplate(&buf, "chartSection", data)
+		if err != nil {
+			return "", fmt.Errorf("error executing chart template: %v", err)
+		}
+		return template.HTML(buf.String()), nil
 	}
 
+	// Read the chart HTML file
+	chartContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read chart file: %v", err)
+	}
+
+	// Prepare the data for the template
+	var buf bytes.Buffer
+	data := struct {
+		HasData   bool
+		ChartHTML template.HTML
+	}{
+		HasData:   true,
+		ChartHTML: template.HTML(chartContent),
+	}
+
+	// Execute the template
 	err = chartTemplate.ExecuteTemplate(&buf, "chartSection", data)
 	if err != nil {
 		return "", fmt.Errorf("error executing chart template: %v", err)
 	}
+
 	return template.HTML(buf.String()), nil
 }
 
