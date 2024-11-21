@@ -50,7 +50,35 @@ func (h *NetworkTestHandler) GetResults(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	results, err := h.repository.GetTestResults(date, testType)
+	startDate := r.URL.Query().Get("startDate")
+	if startDate != "" {
+		h.getResultsRange(w, testType, startDate, date)
+		return
+	}
+
+	result, err := h.repository.GetTestData(date, testType)
+	if err != nil {
+		handleError(w, "retrieving results", err, http.StatusInternalServerError)
+		return
+	}
+
+	writeJSONResponse(w, result)
+}
+
+func (h *NetworkTestHandler) getResultsRange(w http.ResponseWriter, testType, startDate, endDate string) {
+	start, err := time.Parse("2006-01-02", startDate)
+	if err != nil {
+		handleError(w, "invalid start date format", err, http.StatusBadRequest)
+		return
+	}
+
+	end, err := time.Parse("2006-01-02", endDate)
+	if err != nil {
+		handleError(w, "invalid end date format", err, http.StatusBadRequest)
+		return
+	}
+
+	results, err := h.repository.GetTestDataInRange(start, end, testType)
 	if err != nil {
 		handleError(w, "retrieving results", err, http.StatusInternalServerError)
 		return

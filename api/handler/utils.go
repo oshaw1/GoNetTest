@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 )
@@ -14,11 +13,6 @@ func writeJSONResponse(w http.ResponseWriter, data interface{}) {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
-}
-
-func writeHTMLResponse(w http.ResponseWriter, html template.HTML) {
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(html))
 }
 
 func handleError(w http.ResponseWriter, operation string, err error, code int) {

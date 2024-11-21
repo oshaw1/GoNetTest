@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/oshaw1/go-net-test/internal/dataManagement"
 	"github.com/oshaw1/go-net-test/internal/pageGeneration"
@@ -48,4 +50,56 @@ func (h *DashboardHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Requ
 
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(html))
+}
+
+func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
+	dateStr := r.URL.Query().Get("date")
+	if dateStr == "" {
+		handleError(w, "Date parameter is required", errors.New("missing date parameter"), http.StatusBadRequest)
+		return
+	}
+
+	_, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		handleError(w, "Invalid date format", err, http.StatusBadRequest)
+		return
+	}
+
+	chartHtml, err := h.generator.GenerateICMPChartHTML(dateStr)
+	if err != nil {
+		handleError(w, "Error generating chart", err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(chartHtml))
+}
+
+func (h *DashboardHandler) GetData(w http.ResponseWriter, r *http.Request) {
+	dateStr := r.URL.Query().Get("date")
+	if dateStr == "" {
+		handleError(w, "Date parameter is required", errors.New("missing date parameter"), http.StatusBadRequest)
+		return
+	}
+
+	_, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		handleError(w, "Invalid date format", err, http.StatusBadRequest)
+		return
+	}
+
+	result, err := h.repository.GetTestData(dateStr, "icmp")
+	if err != nil {
+		handleError(w, "Error occured fetching data", err, http.StatusInternalServerError)
+		return
+	}
+
+	dataHTML, err := h.generator.GenerateICMPDataHTML(result)
+	if err != nil {
+		log.Printf("Error generating ICMP data: %v", err)
+	} else {
+		log.Printf("Generated ICMP data HTML: %s", dataHTML)
+	}
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(dataHTML))
 }
