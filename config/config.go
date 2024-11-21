@@ -6,11 +6,26 @@ import (
 )
 
 type Config struct {
-	Host          string `json:"host"`
-	Count         int    `json:"ICMP packets"`
-	ProtocolIMCP  int    `json:"protocol IMCP"`
-	TimeoutSecond int    `json:"Timeout Threshold (Seconds)"`
-	RecentDays    int    `json:"Recent Days (How many days should recent be)"`
+	// UI Settings
+	RecentDays int `json:"recentDays"` // How many days of tests to show in UI
+
+	// Test Settings
+	Tests TestConfigs `json:"tests"`
+}
+
+type TestConfigs struct {
+	ICMP ICMPConfig `json:"icmp"`
+	TCP  TCPConfig  `json:"tcp"`
+}
+
+type ICMPConfig struct {
+	PacketCount    int `json:"packetCount"`
+	TimeoutSeconds int `json:"timeoutSeconds"`
+}
+
+type TCPConfig struct {
+	Ports          []int `json:"ports"`
+	TimeoutSeconds int   `json:"timeoutSeconds"`
 }
 
 func NewConfig(filepath string) (*Config, error) {
@@ -18,6 +33,26 @@ func NewConfig(filepath string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Set defaults
+	if config.RecentDays == 0 {
+		config.RecentDays = 7 // Default to showing last 7 days
+	}
+
+	if config.Tests.ICMP.PacketCount == 0 {
+		config.Tests.ICMP.PacketCount = 4
+	}
+	if config.Tests.ICMP.TimeoutSeconds == 0 {
+		config.Tests.ICMP.TimeoutSeconds = 5
+	}
+
+	if len(config.Tests.TCP.Ports) == 0 {
+		config.Tests.TCP.Ports = []int{80, 443} // Default to common ports
+	}
+	if config.Tests.TCP.TimeoutSeconds == 0 {
+		config.Tests.TCP.TimeoutSeconds = 5
+	}
+
 	return config, nil
 }
 

@@ -1,7 +1,13 @@
 {
-    "host": "8.8.8.8",
-    "ICMP packets": 150,
-    "protocol IMCP": 1,
-    "Timeout Threshold (Seconds)":1,
-    "Recent Days (How many days should recent be)": 7
+    "recentDays": 7,
+    "tests": {
+        "icmp": {
+            "packetCount": 4,
+            "timeoutSeconds": 5
+        },
+        "tcp": {
+            "ports": [80, 443, 22],
+            "timeoutSeconds": 5
+        }
+    }
 }

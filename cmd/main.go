@@ -7,7 +7,9 @@ import (
 
 	"github.com/oshaw1/go-net-test/api/handler"
 	"github.com/oshaw1/go-net-test/api/middleware"
-	"github.com/oshaw1/go-net-test/internal/pageGeneration"
+	"github.com/oshaw1/go-net-test/config"
+	"github.com/oshaw1/go-net-test/internal/dataManagement"
+	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
 func initDataDir() {
@@ -19,23 +21,30 @@ func initDataDir() {
 
 func main() {
 	initDataDir()
-	pageGeneration.InitTemplates()
+
+	conf, err := config.NewConfig("config/config.json")
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	repository := dataManagement.NewRepository("data/output", conf)
+	tester := networkTesting.NewNetworkTester(conf)
+
+	networkTestHandler := handler.NewNetworkTestHandler(tester, repository)
+	utilHandler := &handler.UtilHandler{}
+	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.tmpl")
+
 	fs := http.FileServer(http.Dir("web/static"))
 	// file server
 	http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data/output"))))
 	http.Handle("/web/static/", http.StripPrefix("/web/static/", fs))
 
-	networkTestHandler := &handler.NetworkTestHandler{}
-	utilHandler := &handler.UtilHandler{}
-	pageHandler := &handler.PageHandler{}
-
 	http.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))
 
-	http.HandleFunc("/dashboard/", middleware.LoggingMiddleware(pageHandler.ServeDashboard))
-	http.HandleFunc("/dashboard/runtest/icmp", middleware.LoggingMiddleware(pageHandler.RunICMPTest))
-	http.HandleFunc("/dashboard/recent-tests-quadrant", middleware.LoggingMiddleware(pageHandler.GetRecentQuadrant))
+	http.HandleFunc("/dashboard/", middleware.LoggingMiddleware(dashboardHandler.ServeDashboard))
+	http.HandleFunc("/dashboard/recent-tests-quadrant", middleware.LoggingMiddleware(dashboardHandler.GetRecentQuadrant))
 
-	http.HandleFunc("/networktest/icmp", middleware.LoggingMiddleware(networkTestHandler.HandleICMPNetworkTest))
+	http.HandleFunc("/networktest/icmp", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
 	http.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))
 
 	// server

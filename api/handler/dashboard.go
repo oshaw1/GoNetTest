@@ -1,96 +1,51 @@
 package handler
 
 import (
-	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
-	"text/template"
 
-	"github.com/oshaw1/go-net-test/internal/charting"
-	"github.com/oshaw1/go-net-test/internal/dataManagment"
-	"github.com/oshaw1/go-net-test/internal/networkTesting"
+	"github.com/oshaw1/go-net-test/internal/dataManagement"
 	"github.com/oshaw1/go-net-test/internal/pageGeneration"
 )
 
-type PageHandler struct {
+type DashboardHandler struct {
+	repository *dataManagement.Repository
+	generator  *pageGeneration.PageGenerator
 }
 
-func (h PageHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
+func NewDashboardHandler(repo *dataManagement.Repository, templatePath string) *DashboardHandler {
+	generator, err := pageGeneration.NewPageGenerator(templatePath, repo)
+	if err != nil {
+		log.Fatalf("Failed to create page generator: %v", err)
+	}
+
+	return &DashboardHandler{
+		repository: repo,
+		generator:  generator,
+	}
+}
+
+func (h *DashboardHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(filepath.Join("web", "static", "dashboard.html"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleError(w, "Error parsing dashboard template", err, 500)
 		return
 	}
-	err = tmpl.Execute(w, nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+	if err := tmpl.Execute(w, nil); err != nil {
+		handleError(w, "Error rendering dashboard", err, 500)
 	}
 }
 
-func (h PageHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Request) {
-	testTypes := []string{"icmp"} // Add more test types as needed
-	var results []interface{}
-
-	for _, testType := range testTypes {
-		if testType == "icmp" {
-			result, err := dataManagment.GetRecentICMPTestResult(testType)
-			if err != nil {
-				log.Print("Error getting recent test result")
-			}
-			results = append(results, result)
-			continue // Skip this test type if there's an error
-		}
-	}
-
-	if len(results) == 0 {
-		http.Error(w, "No recent test results available", http.StatusNotFound)
-		return
-	}
-
-	html, err := pageGeneration.GenerateRecentQuadrantHTML(results)
+func (h *DashboardHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Request) {
+	html, err := h.generator.GenerateRecentQuadrantHTML()
 	if err != nil {
-		http.Error(w, "Error generating result", http.StatusInternalServerError)
-		log.Printf("Error generating result: %v", err)
+		handleError(w, "Error generating recent quadrant", err, 500)
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(html))
-}
-
-func (h PageHandler) RunICMPTest(w http.ResponseWriter, r *http.Request) {
-	host := networkTesting.GetHost(r)
-
-	result, err := networkTesting.TestNetwork(host)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error performing network test: %v", err), http.StatusInternalServerError)
-		return
-	}
-	var resultInterface interface{} = result
-	testDataFilename, err := dataManagment.SaveTestData(result, "icmp")
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error saving test result: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	chart, err := charting.IcmpPieChart(*result)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error creating pie chart: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	err = dataManagment.SavePieChart(chart, "icmp", testDataFilename)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error saving pie chart: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	html, err := pageGeneration.GenerateRecentQuadrantHTML([]interface{}{resultInterface})
-	if err != nil {
-		http.Error(w, "Error generating result", http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(html))
 }
