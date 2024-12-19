@@ -7,6 +7,17 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
+type ICMPData struct {
+	PageData
+	ICMPTestResult *networkTesting.ICMPTestResult
+	LossPercentage float64
+}
+
+type SpeedData struct {
+	PageData               PageData
+	AverageSpeedTestResult *networkTesting.AverageSpeedTestResult
+}
+
 func (pg *PageGenerator) GenerateICMPDataHTML(result *networkTesting.ICMPTestResult) (template.HTML, error) {
 	fmt.Printf("GenerateICMPDataHTML called with result: %+v\n", result)
 
@@ -16,6 +27,25 @@ func (pg *PageGenerator) GenerateICMPDataHTML(result *networkTesting.ICMPTestRes
 		},
 		ICMPTestResult: result,
 		LossPercentage: calculateLossPercentage(result),
+	}
+
+	html, err := pg.executeTemplate("dataSection", data)
+	if err != nil {
+		fmt.Printf("Template execution error: %v\n", err)
+		return "", fmt.Errorf("template execution failed: %w", err)
+	}
+
+	return html, nil
+}
+
+func (pg *PageGenerator) GenerateSpeedDataHTML(result *networkTesting.AverageSpeedTestResult) (template.HTML, error) {
+	fmt.Printf("GenerateSpeedDataHTML called with result: %+v\n", result)
+
+	data := SpeedData{
+		PageData: PageData{
+			HasData: result != nil,
+		},
+		AverageSpeedTestResult: result,
 	}
 
 	html, err := pg.executeTemplate("dataSection", data)

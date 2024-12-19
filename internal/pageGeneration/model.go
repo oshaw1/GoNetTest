@@ -2,8 +2,6 @@ package pageGeneration
 
 import (
 	"html/template"
-
-	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
 const (
@@ -26,11 +24,4 @@ type PageData struct {
 type ChartData struct {
 	PageData
 	ChartHTML template.HTML
-}
-
-// ICMPData represents the structure for ICMP-specific test results
-type ICMPData struct {
-	PageData
-	ICMPTestResult *networkTesting.ICMPTestResult
-	LossPercentage float64
 }

@@ -10,6 +10,7 @@ import (
 )
 
 type AverageSpeedTestResult struct {
+	Timestamp     time.Time
 	Status        string
 	AverageMbps   float64
 	ElapsedTime   time.Duration
@@ -102,12 +103,15 @@ func (t *NetworkTester) runSpeedTest(test speedTest, testType string) (*AverageS
 }
 
 func createSpeedTestResult(url string, speedMbps float64, elapsed time.Duration, bytes int64, err error, statusFormat string, args ...interface{}) AverageSpeedTestResult {
+	now := time.Now() // Get current timestamp
+
 	if err != nil {
 		return AverageSpeedTestResult{
 			Error: err,
 			TestedURLs: map[string]SpeedTestResult{
 				url: {Status: fmt.Sprintf(statusFormat, args...)},
 			},
+			Timestamp: now, // Add timestamp
 		}
 	}
 
@@ -123,6 +127,7 @@ func createSpeedTestResult(url string, speedMbps float64, elapsed time.Duration,
 				Bytes:    bytes,
 			},
 		},
+		Timestamp: now, // Add timestamp
 	}
 }
 

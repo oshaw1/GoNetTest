@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -91,24 +92,42 @@ func (h *DashboardHandler) GetData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	testType := r.URL.Query().Get("type")
+	if testType == "" {
+		testType = "icmp"
+	}
+
 	_, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
 		handleError(w, "Invalid date format", err, http.StatusBadRequest)
 		return
 	}
 
-	result, err := h.repository.GetTestData(dateStr, "icmp")
+	result, err := h.repository.GetTestData(dateStr, testType)
 	if err != nil {
 		handleError(w, "Error occured fetching data", err, http.StatusInternalServerError)
 		return
 	}
 
-	dataHTML, err := h.generator.GenerateICMPDataHTML(result)
-	if err != nil {
-		log.Printf("Error generating ICMP data: %v", err)
-	} else {
-		log.Printf("Generated ICMP data HTML: %s", dataHTML)
+	var dataHTML template.HTML
+	switch testType {
+	case "icmp":
+		dataHTML, err = h.generator.GenerateICMPDataHTML(result.ICMP)
+	case "download":
+		dataHTML, err = h.generator.GenerateSpeedDataHTML(result.Download)
+	case "upload":
+		dataHTML, err = h.generator.GenerateSpeedDataHTML(result.Upload)
+	default:
+		handleError(w, "Invalid test type", fmt.Errorf("unsupported test type: %s", testType), http.StatusBadRequest)
+		return
 	}
+
+	if err != nil {
+		log.Printf("Error generating %s data: %v", testType, err)
+	} else {
+		log.Printf("Generated %s data HTML: %s", testType, dataHTML)
+	}
+
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(dataHTML))
 }

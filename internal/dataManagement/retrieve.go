@@ -13,11 +13,11 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func (r *Repository) GetTestDataInRange(startDate time.Time, endDate time.Time, testType string) ([]*networkTesting.ICMPTestResult, error) {
+func (r *Repository) GetTestDataInRange(startDate time.Time, endDate time.Time, testType string) ([]*networkTesting.TestResult, error) {
 	log.Printf("GetTestDataInRange called with startDate: %s, endDate: %s, testType: %s",
 		startDate.Format(dateFormat), endDate.Format(dateFormat), testType)
 
-	var allResults []*networkTesting.ICMPTestResult
+	var allResults []*networkTesting.TestResult
 
 	// Try each date in the range
 	for d := endDate; !d.Before(startDate); d = d.AddDate(0, 0, -1) {
@@ -34,15 +34,28 @@ func (r *Repository) GetTestDataInRange(startDate time.Time, endDate time.Time, 
 		}
 	}
 
-	// Sort results by timestamp
 	sort.Slice(allResults, func(i, j int) bool {
-		return allResults[i].Timestamp.After(allResults[j].Timestamp)
+		var timeI, timeJ time.Time
+
+		switch testType {
+		case "icmp":
+			timeI = allResults[i].ICMP.Timestamp
+			timeJ = allResults[j].ICMP.Timestamp
+		case "download":
+			timeI = allResults[i].Download.Timestamp
+			timeJ = allResults[j].Download.Timestamp
+		case "upload":
+			timeI = allResults[i].Download.Timestamp
+			timeJ = allResults[j].Download.Timestamp
+		}
+
+		return timeI.After(timeJ)
 	})
 
 	return allResults, nil
 }
 
-func (r *Repository) GetTestData(date string, testType string) (*networkTesting.ICMPTestResult, error) {
+func (r *Repository) GetTestData(date string, testType string) (*networkTesting.TestResult, error) {
 	log.Printf("GetTestDataOnDate called with date: %s, testType: %s", date, testType)
 
 	exists, filePath, err := r.CheckData(date, testType, ".json")
@@ -58,9 +71,29 @@ func (r *Repository) GetTestData(date string, testType string) (*networkTesting.
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	var result *networkTesting.ICMPTestResult
-	if err := json.Unmarshal(content, &result); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+	result := &networkTesting.TestResult{}
+
+	switch testType {
+	case "icmp":
+		var icmpResult *networkTesting.ICMPTestResult
+		if err := json.Unmarshal(content, &icmpResult); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal ICMP JSON: %w", err)
+		}
+		result.ICMP = icmpResult
+	case "download":
+		var speedResult *networkTesting.AverageSpeedTestResult
+		if err := json.Unmarshal(content, &speedResult); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
+		}
+		result.Download = speedResult
+	case "upload":
+		var speedResult *networkTesting.AverageSpeedTestResult
+		if err := json.Unmarshal(content, &speedResult); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
+		}
+		result.Upload = speedResult
+	default:
+		return nil, fmt.Errorf("unsupported test type: %s", testType)
 	}
 
 	return result, nil

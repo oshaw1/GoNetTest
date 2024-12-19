@@ -16,6 +16,12 @@ func NewNetworkTester(config *config.Config) *NetworkTester {
 	}
 }
 
+type TestResult struct {
+	ICMP     *ICMPTestResult         `json:"ICMP,omitempty"`
+	Download *AverageSpeedTestResult `json:"Download,omitempty"`
+	Upload   *AverageSpeedTestResult `json:"Upload,omitempty"`
+}
+
 func (t *NetworkTester) RunTest(testType string) (any, error) {
 
 	var result any
