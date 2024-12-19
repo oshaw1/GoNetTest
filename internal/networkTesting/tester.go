@@ -1,7 +1,6 @@
 package networkTesting
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/oshaw1/go-net-test/config"
@@ -17,35 +16,25 @@ func NewNetworkTester(config *config.Config) *NetworkTester {
 	}
 }
 
-func (t *NetworkTester) RunTest(ctx context.Context, testTypes []string) ([]any, error) {
-	var results []any
-	var errors []error
+func (t *NetworkTester) RunTest(testType string) (any, error) {
 
-	for _, testType := range testTypes {
-		var result any
-		var err error
+	var result any
+	var err error
 
-		switch testType {
-		case "icmp":
-			result, err = t.runICMPTest()
-		case "download":
-			result, err = t.MeasureDownloadSpeed()
-		case "upload":
-			// implement this
-		default:
-			err = fmt.Errorf("unsupported test type: %s", testType)
-		}
-
-		if err != nil {
-			errors = append(errors, fmt.Errorf("%s test failed: %w", testType, err))
-			continue
-		}
-
-		results = append(results, result)
+	switch testType {
+	case "icmp":
+		result, err = t.runICMPTest()
+	case "download":
+		result, err = t.MeasureDownloadSpeed()
+	case "upload":
+		result, err = t.MeasureUploadSpeed()
+	default:
+		err = fmt.Errorf("unsupported test type: %s", testType)
 	}
 
-	if len(errors) > 0 {
-		return results, fmt.Errorf("some tests failed: %v", errors)
+	if err != nil {
+		return result, err
 	}
-	return results, nil
+
+	return result, nil
 }

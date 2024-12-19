@@ -29,7 +29,7 @@ type ICMPConfig struct {
 
 type SpeedTestURLs struct {
 	DownloadURLs []string `json"downloadUrls"`
-	//UploadURLs   []string `json"UploadUrls"`
+	UploadURLs   []string `json"uploadUrls"`
 }
 
 func NewConfig(filepath string) (*Config, error) {
@@ -51,9 +51,17 @@ func NewConfig(filepath string) (*Config, error) {
 	// Set default speed test URLs if none provided
 	if len(config.Tests.SpeedTestURLs.DownloadURLs) == 0 {
 		config.Tests.SpeedTestURLs.DownloadURLs = []string{
-			"https://speed.cloudflare.com/100MB",
-			"https://storage.googleapis.com/speed-test-files/100MB.bin",
-			"https://speedtest-sfo2.digitalocean.com/100mb.test",
+			"http://ipv4.download.thinkbroadband.com/512MB.zip",
+			"http://ipv4.download.thinkbroadband.com/200MB.zip",
+			"http://ipv4.download.thinkbroadband.com/100MB.zip",
+		}
+	}
+	// upload links are less common so just use the same
+	if len(config.Tests.SpeedTestURLs.UploadURLs) == 0 {
+		config.Tests.SpeedTestURLs.DownloadURLs = []string{
+			"https://httpbin.org/post",
+			"https://httpbin.org/post",
+			"https://httpbin.org/post",
 		}
 	}
 

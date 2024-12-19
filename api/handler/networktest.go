@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -37,7 +36,7 @@ func (h *NetworkTestHandler) HandleNetworkTest(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	result, err := h.runAndSaveTest(r.Context(), testType)
+	result, err := h.runAndSaveTest(testType)
 	if err != nil {
 		handleError(w, "test execution", err, http.StatusInternalServerError)
 		return
@@ -91,28 +90,28 @@ func (h *NetworkTestHandler) getResultsRange(w http.ResponseWriter, testType, st
 	writeJSONResponse(w, results)
 }
 
-func (h *NetworkTestHandler) runAndSaveTest(ctx context.Context, testType string) (interface{}, error) {
-	results, err := h.tester.RunTest(ctx, []string{testType})
+func (h *NetworkTestHandler) runAndSaveTest(testType string) (interface{}, error) {
+	result, err := h.tester.RunTest(testType)
 	if err != nil {
 		return nil, fmt.Errorf("test execution failed: %w", err)
 	}
 
-	if len(results) == 0 {
+	if result == nil {
 		return nil, fmt.Errorf("no test results returned")
 	}
 
-	_, err = h.repository.SaveTestResult(results[0], testType)
+	_, err = h.repository.SaveTestResult(result, testType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save test result: %w", err)
 	}
 
 	go func() {
-		if err := h.generateAndSaveCharts(results[0], testType); err != nil {
+		if err := h.generateAndSaveCharts(result, testType); err != nil {
 			log.Printf("Chart generation failed: %v", err)
 		}
 	}()
 
-	return results[0], nil
+	return result, nil
 }
 
 func (h *NetworkTestHandler) extractTestParams(r *http.Request) (string, error) {
