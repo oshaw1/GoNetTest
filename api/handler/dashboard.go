@@ -18,6 +18,10 @@ type DashboardHandler struct {
 }
 
 func NewDashboardHandler(repo *dataManagement.Repository, templatePath string) *DashboardHandler {
+	if repo == nil {
+		log.Fatalf("Repository cannot be nil")
+	}
+
 	generator, err := pageGeneration.NewPageGenerator(templatePath, repo)
 	if err != nil {
 		log.Fatalf("Failed to create page generator: %v", err)
@@ -58,6 +62,11 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "Date parameter is required", errors.New("missing date parameter"), http.StatusBadRequest)
 		return
 	}
+	testStr := r.URL.Query().Get("test")
+	if testStr == "" {
+		handleError(w, "Test type parameter is required", errors.New("request missing 'test' parameter"), http.StatusBadRequest)
+		return
+	}
 
 	_, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
@@ -65,7 +74,7 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	chartHtml, err := h.generator.GenerateICMPChartHTML(dateStr)
+	chartHtml, err := h.generator.GenerateICMPChartHTMLGivenDate(dateStr, testStr)
 	if err != nil {
 		handleError(w, "Error generating chart", err, http.StatusInternalServerError)
 		return
