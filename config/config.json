@@ -7,9 +7,12 @@
             "packetCount": 4,
             "timeoutSeconds": 5
         },
-        "tcp": {
-            "ports": [80, 443, 22],
-            "timeoutSeconds": 5
+        "speedTestURLs": {
+            "urls": [
+                "https://speed.cloudflare.com/100MB",
+                "https://storage.googleapis.com/speed-test-files/100MB.bin",
+                "https://speedtest-sfo2.digitalocean.com/100mb.test"
+            ]
         }
     }
 }

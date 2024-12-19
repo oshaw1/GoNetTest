@@ -18,8 +18,8 @@ type DashboardSettings struct {
 }
 
 type TestConfigs struct {
-	ICMP ICMPConfig `json:"icmp"`
-	TCP  TCPConfig  `json:"tcp"`
+	ICMP          ICMPConfig    `json:"icmp"`
+	SpeedTestURLs SpeedTestURLs `json:"speedTestURLs"`
 }
 
 type ICMPConfig struct {
@@ -27,9 +27,8 @@ type ICMPConfig struct {
 	TimeoutSeconds int `json:"timeoutSeconds"`
 }
 
-type TCPConfig struct {
-	Ports          []int `json:"ports"`
-	TimeoutSeconds int   `json:"timeoutSeconds"`
+type SpeedTestURLs struct {
+	URLs []string `json"URLs"`
 }
 
 func NewConfig(filepath string) (*Config, error) {
@@ -48,12 +47,13 @@ func NewConfig(filepath string) (*Config, error) {
 	if config.Tests.ICMP.TimeoutSeconds == 0 {
 		config.Tests.ICMP.TimeoutSeconds = 5
 	}
-
-	if len(config.Tests.TCP.Ports) == 0 {
-		config.Tests.TCP.Ports = []int{80, 443} // Default to common ports
-	}
-	if config.Tests.TCP.TimeoutSeconds == 0 {
-		config.Tests.TCP.TimeoutSeconds = 5
+	// Set default speed test URLs if none provided
+	if len(config.Tests.SpeedTestURLs.URLs) == 0 {
+		config.Tests.SpeedTestURLs.URLs = []string{
+			"https://speed.cloudflare.com/100MB",
+			"https://storage.googleapis.com/speed-test-files/100MB.bin",
+			"https://speedtest-sfo2.digitalocean.com/100mb.test",
+		}
 	}
 
 	return config, nil

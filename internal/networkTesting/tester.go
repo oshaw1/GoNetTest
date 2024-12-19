@@ -29,7 +29,7 @@ func (t *NetworkTester) RunTest(ctx context.Context, testTypes []string) ([]any,
 		case "icmp":
 			result, err = t.runICMPTest()
 		case "download":
-			// implement this
+			result, err = t.MeasureDownloadSpeed()
 		case "upload":
 			// implement this
 		default:
