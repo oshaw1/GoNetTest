@@ -3,7 +3,6 @@ package networkTesting
 import (
 	"context"
 	"fmt"
-	"net"
 
 	"github.com/oshaw1/go-net-test/config"
 )
@@ -18,7 +17,7 @@ func NewNetworkTester(config *config.Config) *NetworkTester {
 	}
 }
 
-func (t *NetworkTester) RunTest(ctx context.Context, host string, testTypes []string) ([]any, error) {
+func (t *NetworkTester) RunTest(ctx context.Context, testTypes []string) ([]any, error) {
 	var results []any
 	var errors []error
 
@@ -29,14 +28,10 @@ func (t *NetworkTester) RunTest(ctx context.Context, host string, testTypes []st
 		switch testType {
 		case "icmp":
 			result, err = t.runICMPTest()
-		case "tcp":
-			result, err = t.runTCPTest(host)
-			if host == "" {
-				return nil, fmt.Errorf("host cannot be empty")
-			}
-			if _, err := net.ResolveIPAddr("ip4", host); err != nil {
-				return nil, fmt.Errorf("invalid host address: %w", err)
-			}
+		case "download":
+			// implement this
+		case "upload":
+			// implement this
 		default:
 			err = fmt.Errorf("unsupported test type: %s", testType)
 		}

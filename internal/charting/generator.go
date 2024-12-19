@@ -10,10 +10,6 @@ type ChartGenerator interface {
 	// ICMP Charts
 	GenerateICMPDistributionPie(result *networkTesting.ICMPTestResult) (*charts.Pie, error)
 	GenerateICMPRTTLine(result *networkTesting.ICMPTestResult) (*charts.Line, error)
-
-	// TCP Charts
-	GenerateTCPStatusPie(result *networkTesting.TCPTestResult) (*charts.Pie, error)
-	GenerateTCPTimesBar(result *networkTesting.TCPTestResult) (*charts.Bar, error)
 }
 
 type Generator struct{}

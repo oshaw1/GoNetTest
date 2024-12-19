@@ -44,9 +44,9 @@ func main() {
 	http.HandleFunc("/dashboard/", middleware.LoggingMiddleware(dashboardHandler.ServeDashboard))
 	http.HandleFunc("/dashboard/recent-tests-quadrant", middleware.LoggingMiddleware(dashboardHandler.GetRecentQuadrant))
 	http.HandleFunc("/dashboard/chart", middleware.LoggingMiddleware(dashboardHandler.GetChart))
-	http.HandleFunc("/dashboard/recent-data", middleware.LoggingMiddleware(dashboardHandler.GetData))
+	http.HandleFunc("/dashboard/data", middleware.LoggingMiddleware(dashboardHandler.GetData))
 
-	http.HandleFunc("/networktest/icmp", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
+	http.HandleFunc("/networktest", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
 	http.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))
 
 	// server

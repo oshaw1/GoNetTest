@@ -7,10 +7,14 @@ import (
 
 type Config struct {
 	// UI Settings
-	RecentDays int `json:"recentDays"` // How many days of tests to show in UI
+	Dash DashboardSettings `json:"dashboard"` // How many days of tests to show in UI
 
 	// Test Settings
 	Tests TestConfigs `json:"tests"`
+}
+
+type DashboardSettings struct {
+	RecentDays int `json:"recentDays"`
 }
 
 type TestConfigs struct {
@@ -34,9 +38,8 @@ func NewConfig(filepath string) (*Config, error) {
 		return nil, err
 	}
 
-	// Set defaults
-	if config.RecentDays == 0 {
-		config.RecentDays = 7 // Default to showing last 7 days
+	if config.Dash.RecentDays == 0 {
+		config.Dash.RecentDays = 7 // Default to showing last 7 days
 	}
 
 	if config.Tests.ICMP.PacketCount == 0 {

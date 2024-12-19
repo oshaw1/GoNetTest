@@ -31,9 +31,13 @@ func NewNetworkTestHandler(tester *networkTesting.NetworkTester, repo *dataManag
 
 // HandleNetworkTest handles the test execution request
 func (h *NetworkTestHandler) HandleNetworkTest(w http.ResponseWriter, r *http.Request) {
-	testType, host := h.extractTestParams(r)
+	testType, err := h.extractTestParams(r)
+	if err != nil {
+		handleError(w, "test execution", err, http.StatusBadRequest)
+		return
+	}
 
-	result, err := h.runAndSaveTest(r.Context(), host, testType)
+	result, err := h.runAndSaveTest(r.Context(), testType)
 	if err != nil {
 		handleError(w, "test execution", err, http.StatusInternalServerError)
 		return
@@ -87,8 +91,8 @@ func (h *NetworkTestHandler) getResultsRange(w http.ResponseWriter, testType, st
 	writeJSONResponse(w, results)
 }
 
-func (h *NetworkTestHandler) runAndSaveTest(ctx context.Context, host, testType string) (interface{}, error) {
-	results, err := h.tester.RunTest(ctx, host, []string{testType})
+func (h *NetworkTestHandler) runAndSaveTest(ctx context.Context, testType string) (interface{}, error) {
+	results, err := h.tester.RunTest(ctx, []string{testType})
 	if err != nil {
 		return nil, fmt.Errorf("test execution failed: %w", err)
 	}
@@ -111,14 +115,13 @@ func (h *NetworkTestHandler) runAndSaveTest(ctx context.Context, host, testType 
 	return results[0], nil
 }
 
-func (h *NetworkTestHandler) extractTestParams(r *http.Request) (testType, host string) {
-	testType = r.URL.Query().Get("type")
+func (h *NetworkTestHandler) extractTestParams(r *http.Request) (string, error) {
+	testType := r.URL.Query().Get("test")
 	if testType == "" {
-		testType = "icmp"
+		return "", fmt.Errorf("missing test type parameter: 'test'")
 	}
 
-	host = r.URL.Query().Get("host")
-	return testType, host
+	return testType, nil
 }
 
 func (h *NetworkTestHandler) extractResultParams(r *http.Request) (string, string, error) {
@@ -161,26 +164,12 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 				log.Printf("Failed to save RTT chart: %v", err)
 			}
 		}
-	case "tcp":
-		if tcpResult, ok := result.(*networkTesting.TCPTestResult); ok {
-			// Generate status pie
-			pieChart, err := h.charts.GenerateTCPStatusPie(tcpResult)
-			if err != nil {
-				return fmt.Errorf("failed to generate status chart: %w", err)
-			}
-			if _, err := h.repository.SaveChart(pieChart, "tcp", "status"); err != nil {
-				log.Printf("Failed to save status chart: %v", err)
-			}
+	case "download":
+		// implement download test
 
-			// Generate times bar
-			barChart, err := h.charts.GenerateTCPTimesBar(tcpResult)
-			if err != nil {
-				return fmt.Errorf("failed to generate times chart: %w", err)
-			}
-			if _, err := h.repository.SaveChart(barChart, "tcp", "times"); err != nil {
-				log.Printf("Failed to save times chart: %v", err)
-			}
-		}
+	case "upload":
+		// implement download test
+
 	}
 	return nil
 }

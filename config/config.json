@@ -1,5 +1,7 @@
 {
-    "recentDays": 7,
+    "dashboard": {
+        "recentDays": 7
+    },
     "tests": {
         "icmp": {
             "packetCount": 4,
