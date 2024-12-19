@@ -19,4 +19,6 @@ docker run --network host -p 7000:7000 go-net-test-app
 
 ## Types of tests -
  
-ICMB -
+ICMP -
+Download -
+Upload -
