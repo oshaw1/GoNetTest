@@ -9,12 +9,6 @@ const (
 	NoDataMessage    = "<p>No recent test data available.</p>"
 )
 
-var requiredTemplates = []string{
-	"recentData.tmpl",
-	"chart.tmpl",
-	"recentQuadrant.tmpl",
-}
-
 type PageData struct {
 	HasData bool
 	Content template.HTML

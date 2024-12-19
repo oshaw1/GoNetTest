@@ -15,6 +15,12 @@ type PageGenerator struct {
 	logger     *log.Logger
 }
 
+var requiredTemplates = []string{
+	"recentData.tmpl",
+	"chart.tmpl",
+	"recentQuadrant.tmpl",
+}
+
 // NewPageGenerator creates a new instance of PageGenerator with validation
 func NewPageGenerator(templatePath string, repo *dataManagement.Repository) (*PageGenerator, error) {
 	if repo == nil {

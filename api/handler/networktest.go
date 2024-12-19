@@ -30,10 +30,9 @@ func NewNetworkTestHandler(tester *networkTesting.NetworkTester, repo *dataManag
 
 // HandleNetworkTest handles the test execution request
 func (h *NetworkTestHandler) HandleNetworkTest(w http.ResponseWriter, r *http.Request) {
-	testType, err := h.extractTestParams(r)
-	if err != nil {
-		handleError(w, "test execution", err, http.StatusBadRequest)
-		return
+	testType := r.URL.Query().Get("test")
+	if testType == "" {
+		handleError(w, "missing test type parameter: 'test'", nil, http.StatusBadRequest)
 	}
 
 	result, err := h.runAndSaveTest(testType)
@@ -112,15 +111,6 @@ func (h *NetworkTestHandler) runAndSaveTest(testType string) (interface{}, error
 	}()
 
 	return result, nil
-}
-
-func (h *NetworkTestHandler) extractTestParams(r *http.Request) (string, error) {
-	testType := r.URL.Query().Get("test")
-	if testType == "" {
-		return "", fmt.Errorf("missing test type parameter: 'test'")
-	}
-
-	return testType, nil
 }
 
 func (h *NetworkTestHandler) extractResultParams(r *http.Request) (string, string, error) {

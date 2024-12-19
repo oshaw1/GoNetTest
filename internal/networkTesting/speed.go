@@ -90,6 +90,7 @@ func (t *NetworkTester) runSpeedTest(test speedTest, testType string) (*AverageS
 	avgBytes := totalBytes / int64(successfulTests)
 
 	return &AverageSpeedTestResult{
+		Timestamp:     time.Now(),
 		AverageMbps:   avgSpeed,
 		ElapsedTime:   avgTime,
 		BytesReceived: avgBytes,
@@ -111,7 +112,7 @@ func createSpeedTestResult(url string, speedMbps float64, elapsed time.Duration,
 			TestedURLs: map[string]SpeedTestResult{
 				url: {Status: fmt.Sprintf(statusFormat, args...)},
 			},
-			Timestamp: now, // Add timestamp
+			Timestamp: now,
 		}
 	}
 
@@ -127,7 +128,7 @@ func createSpeedTestResult(url string, speedMbps float64, elapsed time.Duration,
 				Bytes:    bytes,
 			},
 		},
-		Timestamp: now, // Add timestamp
+		Timestamp: now,
 	}
 }
 
