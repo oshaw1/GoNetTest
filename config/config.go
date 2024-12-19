@@ -28,7 +28,7 @@ type ICMPConfig struct {
 }
 
 type SpeedTestURLs struct {
-	URLs []string `json"URLs"`
+	URLs []string `json"urls"`
 }
 
 func NewConfig(filepath string) (*Config, error) {
