@@ -210,7 +210,6 @@ func (t *NetworkTester) measureSingleUpload(url string, data []byte) AverageSpee
 	}
 	defer resp.Body.Close()
 
-	// Read response to ensure upload completed
 	_, err = io.Copy(io.Discard, resp.Body)
 	if err != nil {
 		return AverageSpeedTestResult{
