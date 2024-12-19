@@ -52,3 +52,49 @@ func TestMeasureDownloadSpeed(t *testing.T) {
 		t.Error("Expected at least one successful speed test")
 	}
 }
+
+func TestMeasureUploadSpeed(t *testing.T) {
+	cfg := &config.Config{
+		Tests: config.TestConfigs{
+			SpeedTestURLs: config.SpeedTestURLs{
+				UploadURLs: []string{
+					"https://httpbin.org/post",
+				},
+			},
+		},
+	}
+	tester := NewNetworkTester(cfg)
+
+	result, err := tester.MeasureUploadSpeed()
+	if err != nil {
+		t.Fatalf("MeasureUploadSpeed returned unexpected error: %v", err)
+	}
+
+	if result.AverageMbps <= 0 {
+		t.Errorf("Expected average upload speed > 0, got %v", result.AverageMbps)
+	}
+
+	if result.ElapsedTime <= 0 {
+		t.Errorf("Expected elapsed time > 0, got %v", result.ElapsedTime)
+	}
+
+	if result.BytesReceived <= 0 {
+		t.Errorf("Expected bytes received > 0, got %v", result.BytesReceived)
+	}
+
+	expectedURLCount := len(cfg.Tests.SpeedTestURLs.UploadURLs)
+	if len(result.TestedURLs) != expectedURLCount {
+		t.Errorf("Expected individual results for %d URLs, got %d", expectedURLCount, len(result.TestedURLs))
+	}
+
+	hasSuccess := false
+	for _, result := range result.TestedURLs {
+		if result.Speed > 0 {
+			hasSuccess = true
+			break
+		}
+	}
+	if !hasSuccess {
+		t.Error("Expected at least one successful speed test")
+	}
+}
