@@ -56,11 +56,8 @@ func NewConfig(filepath string) (*Config, error) {
 			"http://ipv4.download.thinkbroadband.com/100MB.zip",
 		}
 	}
-	// upload links are less common so just use the same
 	if len(config.Tests.SpeedTestURLs.UploadURLs) == 0 {
 		config.Tests.SpeedTestURLs.DownloadURLs = []string{
-			"https://httpbin.org/post",
-			"https://httpbin.org/post",
 			"https://httpbin.org/post",
 		}
 	}
