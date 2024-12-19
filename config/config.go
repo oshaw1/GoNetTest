@@ -59,6 +59,8 @@ func NewConfig(filepath string) (*Config, error) {
 	if len(config.Tests.SpeedTestURLs.UploadURLs) == 0 {
 		config.Tests.SpeedTestURLs.DownloadURLs = []string{
 			"https://httpbin.org/post",
+			"https://httpbin.org/anything",
+			"https://catbox.moe",
 		}
 	}
 

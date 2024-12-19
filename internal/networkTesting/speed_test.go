@@ -59,6 +59,7 @@ func TestMeasureUploadSpeed(t *testing.T) {
 			SpeedTestURLs: config.SpeedTestURLs{
 				UploadURLs: []string{
 					"https://httpbin.org/post",
+					"https://httpbin.org/anything",
 				},
 			},
 		},

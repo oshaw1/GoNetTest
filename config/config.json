@@ -14,7 +14,9 @@
                 "http://ipv4.download.thinkbroadband.com/100MB.zip"
             ],
             "uploadUrls": [
-                "https://httpbin.org/post"
+                "https://httpbin.org/post",
+                "https://httpbin.org/anything",
+                "https://catbox.moe"
             ]
         }
     }
