@@ -28,7 +28,8 @@ type ICMPConfig struct {
 }
 
 type SpeedTestURLs struct {
-	URLs []string `json"urls"`
+	DownloadURLs []string `json"downloadUrls"`
+	//UploadURLs   []string `json"UploadUrls"`
 }
 
 func NewConfig(filepath string) (*Config, error) {
@@ -48,8 +49,8 @@ func NewConfig(filepath string) (*Config, error) {
 		config.Tests.ICMP.TimeoutSeconds = 5
 	}
 	// Set default speed test URLs if none provided
-	if len(config.Tests.SpeedTestURLs.URLs) == 0 {
-		config.Tests.SpeedTestURLs.URLs = []string{
+	if len(config.Tests.SpeedTestURLs.DownloadURLs) == 0 {
+		config.Tests.SpeedTestURLs.DownloadURLs = []string{
 			"https://speed.cloudflare.com/100MB",
 			"https://storage.googleapis.com/speed-test-files/100MB.bin",
 			"https://speedtest-sfo2.digitalocean.com/100mb.test",

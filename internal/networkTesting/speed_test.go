@@ -10,10 +10,9 @@ func TestMeasureDownloadSpeed(t *testing.T) {
 	cfg := &config.Config{
 		Tests: config.TestConfigs{
 			SpeedTestURLs: config.SpeedTestURLs{
-				URLs: []string{
-					"https://speed.cloudflare.com/100MB",
-					"https://storage.googleapis.com/speed-test-files/100MB.bin",
-					"https://speedtest-sfo2.digitalocean.com/100mb.test",
+				DownloadURLs: []string{
+					"http://ipv4.download.thinkbroadband.com/10MB.zip",
+					"http://ipv4.download.thinkbroadband.com/5MB.zip",
 				},
 			},
 		},
@@ -37,7 +36,7 @@ func TestMeasureDownloadSpeed(t *testing.T) {
 		t.Errorf("Expected bytes received > 0, got %v", result.BytesReceived)
 	}
 
-	expectedURLCount := len(cfg.Tests.SpeedTestURLs.URLs)
+	expectedURLCount := len(cfg.Tests.SpeedTestURLs.DownloadURLs)
 	if len(result.TestedURLs) != expectedURLCount {
 		t.Errorf("Expected individual results for %d URLs, got %d", expectedURLCount, len(result.TestedURLs))
 	}

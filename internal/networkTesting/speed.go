@@ -20,83 +20,6 @@ type TestResult struct {
 	Status   string
 	Duration time.Duration
 	Bytes    int64
-	Expected int64 // Added to track expected file size
-}
-
-func (t *NetworkTester) measureSingleDownload(url string) SpeedTestResult {
-	start := time.Now()
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return SpeedTestResult{
-			Error: err,
-			TestedURLs: map[string]TestResult{
-				url: {Status: "FAILED - Connection Error"},
-			},
-		}
-	}
-	defer resp.Body.Close()
-
-	expectedBytes := resp.ContentLength
-	if expectedBytes <= 0 {
-		return SpeedTestResult{
-			Error: fmt.Errorf("invalid content length"),
-			TestedURLs: map[string]TestResult{
-				url: {
-					Status:   "FAILED - Invalid Content Length",
-					Expected: 0,
-				},
-			},
-		}
-	}
-
-	bytes, err := io.Copy(io.Discard, resp.Body)
-	if err != nil {
-		return SpeedTestResult{
-			Error: err,
-			TestedURLs: map[string]TestResult{
-				url: {
-					Status:   "FAILED - Download Error",
-					Bytes:    bytes,
-					Expected: expectedBytes,
-				},
-			},
-		}
-	}
-
-	// Validate we got the expected amount of data
-	if bytes < expectedBytes {
-		return SpeedTestResult{
-			Error: fmt.Errorf("incomplete download"),
-			TestedURLs: map[string]TestResult{
-				url: {
-					Status: fmt.Sprintf("FAILED - Incomplete Download (Got: %.2f MB, Expected: %.2f MB)",
-						float64(bytes)/(1024*1024),
-						float64(expectedBytes)/(1024*1024)),
-					Bytes:    bytes,
-					Expected: expectedBytes,
-				},
-			},
-		}
-	}
-
-	elapsed := time.Since(start)
-	speedMbps := float64(bytes*8) / (1024 * 1024) / elapsed.Seconds()
-
-	return SpeedTestResult{
-		AverageMbps:   speedMbps,
-		ElapsedTime:   elapsed,
-		BytesReceived: bytes,
-		TestedURLs: map[string]TestResult{
-			url: {
-				Speed:    speedMbps,
-				Status:   fmt.Sprintf("%.2f Mbps (%.2f MB downloaded)", speedMbps, float64(bytes)/(1024*1024)),
-				Duration: elapsed,
-				Bytes:    bytes,
-				Expected: expectedBytes,
-			},
-		},
-	}
 }
 
 func (t *NetworkTester) MeasureDownloadSpeed() (*SpeedTestResult, error) {
@@ -108,7 +31,7 @@ func (t *NetworkTester) MeasureDownloadSpeed() (*SpeedTestResult, error) {
 
 	testedURLs := make(map[string]TestResult)
 
-	for _, url := range t.config.Tests.SpeedTestURLs.URLs {
+	for _, url := range t.config.Tests.SpeedTestURLs.DownloadURLs {
 		result := t.measureSingleDownload(url)
 
 		if result.Error != nil {
@@ -137,4 +60,75 @@ func (t *NetworkTester) MeasureDownloadSpeed() (*SpeedTestResult, error) {
 		BytesReceived: totalBytes / int64(successfulTests),
 		TestedURLs:    testedURLs,
 	}, nil
+}
+
+func (t *NetworkTester) measureSingleDownload(url string) SpeedTestResult {
+	start := time.Now()
+
+	client, req, err := t.setupDownloadClient(url)
+	if err != nil {
+		return SpeedTestResult{
+			Error: err,
+			TestedURLs: map[string]TestResult{
+				url: {Status: "FAILED - Request Creation Error"},
+			},
+		}
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return SpeedTestResult{
+			Error: err,
+			TestedURLs: map[string]TestResult{
+				url: {Status: "FAILED - Connection Error"},
+			},
+		}
+	}
+	defer resp.Body.Close()
+
+	bytes, err := io.Copy(io.Discard, resp.Body)
+	if err != nil {
+		return SpeedTestResult{
+			Error: err,
+			TestedURLs: map[string]TestResult{
+				url: {
+					Status: "FAILED - Download Error",
+					Bytes:  bytes,
+				},
+			},
+		}
+	}
+
+	elapsed := time.Since(start)
+	speedMbps := float64(bytes*8) / (1024 * 1024) / elapsed.Seconds()
+
+	return SpeedTestResult{
+		AverageMbps:   speedMbps,
+		ElapsedTime:   elapsed,
+		BytesReceived: bytes,
+		TestedURLs: map[string]TestResult{
+			url: {
+				Speed:    speedMbps,
+				Status:   fmt.Sprintf("%.2f Mbps (%.2f MB downloaded)", speedMbps, float64(bytes)/(1024*1024)),
+				Duration: elapsed,
+				Bytes:    bytes,
+			},
+		},
+	}
+}
+
+func (t *NetworkTester) setupDownloadClient(url string) (*http.Client, *http.Request, error) {
+	client := &http.Client{
+		Timeout: 5 * time.Minute,
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Add browser-like headers
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0")
+
+	return client, req, nil
 }

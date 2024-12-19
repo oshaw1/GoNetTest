@@ -8,10 +8,10 @@
             "timeoutSeconds": 5
         },
         "speedTestURLs": {
-            "urls": [
-                "https://speed.cloudflare.com/100MB",
-                "https://storage.googleapis.com/speed-test-files/100MB.bin",
-                "https://speedtest-sfo2.digitalocean.com/100mb.test"
+            "downloadUrls": [
+                "http://ipv4.download.thinkbroadband.com/512MB.zip",
+                "http://ipv4.download.thinkbroadband.com/200MB.zip",
+                "http://ipv4.download.thinkbroadband.com/100MB.zip"
             ]
         }
     }

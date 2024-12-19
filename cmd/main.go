@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/oshaw1/go-net-test/api/handler"
 	"github.com/oshaw1/go-net-test/api/middleware"
@@ -49,10 +50,15 @@ func main() {
 	http.HandleFunc("/networktest", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
 	http.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))
 
-	// server
-	port := ":7000"
-	log.Printf("Server starting on port %s\n", port)
-	if err := http.ListenAndServe(port, nil); err != nil {
+	server := &http.Server{
+		Addr:         ":7000",
+		ReadTimeout:  5 * time.Minute,
+		WriteTimeout: 5 * time.Minute,
+		IdleTimeout:  120 * time.Second,
+	}
+
+	log.Printf("Server starting on port %s\n", server.Addr)
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }
