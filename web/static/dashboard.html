@@ -12,25 +12,23 @@
 <body>
     <div class="dashboard">
         <div id="recent-quadrant" class="quadrant"
-            hx-get="http://192.168.1.233:7000/dashboard/recent-tests-quadrant"
+            hx-get="http://localhost:7000/dashboard/recent-tests-quadrant"
             hx-trigger="load"
             hx-swap="innerHTML">
             <h2>Recent Tests</h2>
+            <button id="refreshButton" hx-target="#recent-quadrant" hx-swap="innerHTML" hx-get="http://localhost:7000/dashboard/recent-tests-quadrant">Refresh</button>
             <div id="recentTestCharts">
                 <img  alt="Charts loading..." class="loading" width="150" src="/web/static/bars.svg"/>
             </div>
             <div id="recentTestData">
                 Loading recent tests data ...
             </div>
-            <div class="input-group">
-                Loading input group ...
-            </div>
         </div>
-        <div class="quadrant">
-            <h2>Quadrant 2</h2>
+        <div id="history-quadrant" class="quadrant">
+            <h2>History</h2>
         </div>
-        <div class="quadrant">
-            <h2>Quadrant 3</h2>
+        <div id="control-quadrant" class="quadrant">
+            <h2>Control Interface</h2>
         </div>
         <div class="quadrant">
             <h2>Quadrant 4</h2>

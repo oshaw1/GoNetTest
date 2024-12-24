@@ -18,6 +18,23 @@
                 "https://httpbin.org/anything",
                 "https://catbox.moe"
             ]
+        },
+        "routeTest": {
+            "target": "8.8.8.8",
+            "maxHops": 30,
+            "timeoutSeconds": 5
+        },
+        "jitterTest": {
+            "target": "8.8.8.8",
+            "packetCount": 10,
+            "timeoutSeconds": 5
+        },
+        "bandwidth": {
+            "initialConnections": 1,
+            "maxConnections": 32,
+            "rampUpStep": 2,
+            "stepDuration": "30s",
+            "failureThreshold": 20
         }
     }
 }

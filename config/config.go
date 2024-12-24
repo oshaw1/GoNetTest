@@ -18,8 +18,11 @@ type DashboardSettings struct {
 }
 
 type TestConfigs struct {
-	ICMP          ICMPConfig    `json:"icmp"`
-	SpeedTestURLs SpeedTestURLs `json:"speedTestURLs"`
+	ICMP          ICMPConfig      `json:"icmp"`
+	SpeedTestURLs SpeedTestURLs   `json:"speedTestURLs"`
+	RouteTest     RouteConfig     `json:"routeTest"`
+	JitterTest    JitterConfig    `json:"jitterTest"`
+	Bandwidth     BandwidthConfig `json:"bandwidth"`
 }
 
 type ICMPConfig struct {
@@ -30,6 +33,26 @@ type ICMPConfig struct {
 type SpeedTestURLs struct {
 	DownloadURLs []string `json"downloadUrls"`
 	UploadURLs   []string `json"uploadUrls"`
+}
+
+type RouteConfig struct {
+	Target         string `json:"target"`
+	MaxHops        int    `json:"maxHops"`
+	TimeoutSeconds int    `json:"timeoutSeconds"`
+}
+
+type JitterConfig struct {
+	Target         string `json:"target"`
+	PacketCount    int    `json:"packetCount"`
+	TimeoutSeconds int    `json:"timeoutSeconds"`
+}
+
+type BandwidthConfig struct {
+	InitialConnections int     `json:"initialConnections"`
+	MaxConnections     int     `json:"maxConnections"`
+	StepSize           int     `json:"stepSize"`     // Change from rampUpStep
+	StepDuration       string  `json:"stepDuration"` // Change from TestDuration
+	FailThreshold      float64 `json:"failThreshold"`
 }
 
 func NewConfig(filepath string) (*Config, error) {
@@ -62,6 +85,34 @@ func NewConfig(filepath string) (*Config, error) {
 			"https://httpbin.org/anything",
 			"https://catbox.moe",
 		}
+	}
+	if config.Tests.RouteTest.MaxHops == 0 {
+		config.Tests.RouteTest.MaxHops = 30
+	}
+	if config.Tests.RouteTest.TimeoutSeconds == 0 {
+		config.Tests.RouteTest.TimeoutSeconds = 5
+	}
+	if config.Tests.JitterTest.PacketCount == 0 {
+		config.Tests.JitterTest.PacketCount = 10
+	}
+	if config.Tests.JitterTest.TimeoutSeconds == 0 {
+		config.Tests.JitterTest.TimeoutSeconds = 5
+	}
+
+	if config.Tests.Bandwidth.InitialConnections == 0 {
+		config.Tests.Bandwidth.InitialConnections = 1
+	}
+	if config.Tests.Bandwidth.MaxConnections == 0 {
+		config.Tests.Bandwidth.MaxConnections = 32
+	}
+	if config.Tests.Bandwidth.StepSize == 0 {
+		config.Tests.Bandwidth.StepSize = 2
+	}
+	if config.Tests.Bandwidth.StepDuration == "" {
+		config.Tests.Bandwidth.StepDuration = "30s"
+	}
+	if config.Tests.Bandwidth.FailThreshold == 0 {
+		config.Tests.Bandwidth.FailThreshold = 20
 	}
 
 	return config, nil

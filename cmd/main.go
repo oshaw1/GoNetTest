@@ -13,15 +13,11 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func initDataDir() {
+func main() {
 	err := os.MkdirAll("data/output/", 0755)
 	if err != nil {
 		log.Fatalf("failed to create directory structure: %e", err)
 	}
-}
-
-func main() {
-	initDataDir()
 
 	conf, err := config.NewConfig("config/config.json")
 	if err != nil {

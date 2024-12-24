@@ -20,6 +20,8 @@ type TestResult struct {
 	ICMP     *ICMPTestResult         `json:"ICMP,omitempty"`
 	Download *AverageSpeedTestResult `json:"Download,omitempty"`
 	Upload   *AverageSpeedTestResult `json:"Upload,omitempty"`
+	Route    *RouteTestResult        `json:"Route,omitempty"`
+	Jitter   *JitterTestResult       `json:"Jitter,omitempty"`
 }
 
 func (t *NetworkTester) RunTest(testType string) (any, error) {
@@ -34,6 +36,12 @@ func (t *NetworkTester) RunTest(testType string) (any, error) {
 		result, err = t.MeasureDownloadSpeed()
 	case "upload":
 		result, err = t.MeasureUploadSpeed()
+	case "route":
+		result, err = t.RunRouteTest()
+	case "latency":
+		result, err = t.RunJitterTest()
+	case "bandwidth":
+		result, err = t.RunBandwidthTest()
 	default:
 		err = fmt.Errorf("unsupported test type: %s", testType)
 	}

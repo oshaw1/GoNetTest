@@ -3,25 +3,5 @@
     <button id="refreshButton" hx-target="#recent-quadrant" hx-swap="innerHTML" hx-get="http://localhost:7000/dashboard/recent-tests-quadrant">Refresh</button>
     {{.ChartSection}}
     {{.DataSection}}
-    <div class="input-group">
-        <input type="text" name="host" placeholder="Enter IP (optional)" id="hostInput">
-        <button hx-get="http://localhost:7000/dashboard/runtest/icmp"
-                hx-trigger="click"
-                hx-include="#hostInput"
-                hx-target="#recent-quadrant"
-                hx-swap="innerHTML"
-                hx-ext="json-enc"
-                hx-vals='js:{
-                    url: function() {
-                    var host = document.getElementById("hostInput").value;
-                    var baseUrl = "http://localhost:7000/dashboard/runtest/icmp";
-                    if (host) {
-                        return baseUrl + "?host=" + host;
-                    }
-                    return baseUrl;
-                    }
-                }'>
-            Run Test
-        </button>
     </div>
 {{end}}
