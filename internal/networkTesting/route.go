@@ -64,7 +64,6 @@ func probeRouteHop(conn *icmp.PacketConn, dst *net.IPAddr, ttl int, timeout int)
 		Lost:   true,
 	}
 
-	// Debug logging
 	fmt.Printf("Probing hop %d\n", ttl)
 
 	if err := conn.IPv4PacketConn().SetTTL(ttl); err != nil {

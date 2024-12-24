@@ -24,24 +24,3 @@ func (g *Generator) GenerateICMPDistributionPie(result *networkTesting.ICMPTestR
 
 	return pie, nil
 }
-
-// GenerateICMPRTTLine creates a line chart showing RTT times
-func (g *Generator) GenerateICMPRTTLine(result *networkTesting.ICMPTestResult) (*charts.Line, error) {
-	line := charts.NewLine()
-	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
-		Title:    "ICMP Round Trip Times",
-		Subtitle: fmt.Sprintf("Test ran at: %v", result.Timestamp),
-	}))
-
-	xAxis := []string{"Min RTT", "Avg RTT", "Max RTT"}
-	yAxis := []opts.LineData{
-		{Value: result.MinRTT.Milliseconds()},
-		{Value: result.AvgRTT.Milliseconds()},
-		{Value: result.MaxRTT.Milliseconds()},
-	}
-
-	line.SetXAxis(xAxis)
-	line.AddSeries("Time (ms)", yAxis)
-
-	return line, nil
-}

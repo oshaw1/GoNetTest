@@ -9,7 +9,6 @@ import (
 type ChartGenerator interface {
 	// ICMP Charts
 	GenerateICMPDistributionPie(result *networkTesting.ICMPTestResult) (*charts.Pie, error)
-	GenerateICMPRTTLine(result *networkTesting.ICMPTestResult) (*charts.Line, error)
 }
 
 type Generator struct{}

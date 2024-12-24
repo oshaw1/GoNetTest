@@ -32,7 +32,7 @@ func main() {
 	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.tmpl")
 
 	fs := http.FileServer(http.Dir("web/static"))
-	// file server
+
 	http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data/output"))))
 	http.Handle("/web/static/", http.StripPrefix("/web/static/", fs))
 

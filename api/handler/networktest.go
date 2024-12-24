@@ -135,7 +135,6 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 	switch testType {
 	case "icmp":
 		if icmpResult, ok := result.(*networkTesting.ICMPTestResult); ok {
-			// Generate distribution pie
 			pieChart, err := h.charts.GenerateICMPDistributionPie(icmpResult)
 			if err != nil {
 				return fmt.Errorf("failed to generate distribution chart: %w", err)
@@ -143,22 +142,38 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 			if _, err := h.repository.SaveChart(pieChart, "icmp", "distribution"); err != nil {
 				log.Printf("Failed to save distribution chart: %v", err)
 			}
-
-			// Generate RTT line
-			lineChart, err := h.charts.GenerateICMPRTTLine(icmpResult)
-			if err != nil {
-				return fmt.Errorf("failed to generate RTT chart: %w", err)
-			}
-			if _, err := h.repository.SaveChart(lineChart, "icmp", "rtt"); err != nil {
-				log.Printf("Failed to save RTT chart: %v", err)
-			}
 		}
 	case "download":
 		// implement download test
-
 	case "upload":
-		// implement download test
 
+	case "route":
+		if routeResult, ok := result.(*networkTesting.RouteTestResult); ok {
+			lineChart, err := h.charts.GenerateRouteTestChart(routeResult)
+			if err != nil {
+				return fmt.Errorf("failed to generate distribution chart: %w", err)
+			}
+			if _, err := h.repository.SaveChart(lineChart, "route", "path"); err != nil {
+				log.Printf("Failed to save route line chart: %v", err)
+			}
+		}
+	case "latency":
+		if latencyResult, ok := result.(*networkTesting.JitterTestResult); ok {
+			lineChart, barChart, err := h.charts.GenerateJitterAnalysisCharts(latencyResult)
+			if err != nil {
+				return fmt.Errorf("failed to generate distribution chart: %w", err)
+			}
+			if _, err := h.repository.SaveChart(lineChart, "latency", "path"); err != nil {
+				log.Printf("Failed to save route line chart: %v", err)
+			}
+			if _, err := h.repository.SaveChart(barChart, "latency", "distribution"); err != nil {
+				log.Printf("Failed to save route line chart: %v", err)
+			}
+		}
+	case "bandwidth":
+
+	default:
+		return fmt.Errorf("unsupported test type: %s", testType)
 	}
 	return nil
 }
