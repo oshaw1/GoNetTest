@@ -8,7 +8,16 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func (g *Generator) GenerateICMPDistributionPie(result *networkTesting.ICMPTestResult) (*charts.Pie, error) {
+func (g *Generator) GenerateICMPAnalysisCharts(result *networkTesting.ICMPTestResult) (*charts.Pie, error) {
+	pie, err := generateICMPDistributionPie(result)
+	if err != nil {
+		return nil, err
+	}
+
+	return pie, nil
+}
+
+func generateICMPDistributionPie(result *networkTesting.ICMPTestResult) (*charts.Pie, error) {
 	pie := charts.NewPie()
 	pie.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
 		Title:    "ICMP Packet Distribution",

@@ -8,7 +8,7 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func (g *Generator) GenerateRouteTestChart(result *networkTesting.RouteTestResult) (*charts.Line, error) {
+func generateRouteRequestPathChart(result *networkTesting.RouteTestResult) (*charts.Line, error) {
 	line := charts.NewLine()
 	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
 		Title:    "Route Test RTT by Hop",
@@ -33,4 +33,13 @@ func (g *Generator) GenerateRouteTestChart(result *networkTesting.RouteTestResul
 
 	line.SetXAxis(xAxis).AddSeries("RTT (ms)", rttData)
 	return line, nil
+}
+
+func (g *Generator) GenerateRouteAnalysisCharts(result *networkTesting.RouteTestResult) (*charts.Line, error) {
+	pie, err := generateRouteRequestPathChart(result)
+	if err != nil {
+		return nil, err
+	}
+
+	return pie, nil
 }

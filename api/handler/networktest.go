@@ -17,14 +17,14 @@ const dateFormat = "2006-01-02"
 type NetworkTestHandler struct {
 	tester     *networkTesting.NetworkTester
 	repository *dataManagement.Repository
-	charts     *charting.Generator // Use concrete type instead of interface
+	charts     *charting.Generator
 }
 
 func NewNetworkTestHandler(tester *networkTesting.NetworkTester, repo *dataManagement.Repository) *NetworkTestHandler {
 	return &NetworkTestHandler{
 		tester:     tester,
 		repository: repo,
-		charts:     charting.NewGenerator(), // Create it directly
+		charts:     charting.NewGenerator(),
 	}
 }
 
@@ -135,7 +135,7 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 	switch testType {
 	case "icmp":
 		if icmpResult, ok := result.(*networkTesting.ICMPTestResult); ok {
-			pieChart, err := h.charts.GenerateICMPDistributionPie(icmpResult)
+			pieChart, err := h.charts.GenerateICMPAnalysisCharts(icmpResult)
 			if err != nil {
 				return fmt.Errorf("failed to generate distribution chart: %w", err)
 			}
@@ -149,7 +149,7 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 
 	case "route":
 		if routeResult, ok := result.(*networkTesting.RouteTestResult); ok {
-			lineChart, err := h.charts.GenerateRouteTestChart(routeResult)
+			lineChart, err := h.charts.GenerateRouteAnalysisCharts(routeResult)
 			if err != nil {
 				return fmt.Errorf("failed to generate distribution chart: %w", err)
 			}
@@ -159,14 +159,11 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 		}
 	case "latency":
 		if latencyResult, ok := result.(*networkTesting.JitterTestResult); ok {
-			lineChart, barChart, err := h.charts.GenerateJitterAnalysisCharts(latencyResult)
+			lineChart, err := h.charts.GenerateJitterAnalysisCharts(latencyResult)
 			if err != nil {
 				return fmt.Errorf("failed to generate distribution chart: %w", err)
 			}
 			if _, err := h.repository.SaveChart(lineChart, "latency", "path"); err != nil {
-				log.Printf("Failed to save route line chart: %v", err)
-			}
-			if _, err := h.repository.SaveChart(barChart, "latency", "distribution"); err != nil {
 				log.Printf("Failed to save route line chart: %v", err)
 			}
 		}

@@ -8,7 +8,16 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func (g *Generator) GenerateJitterAnalysisCharts(result *networkTesting.JitterTestResult) (*charts.Line, *charts.Bar, error) {
+func (g *Generator) GenerateJitterAnalysisCharts(result *networkTesting.JitterTestResult) (*charts.Line, error) {
+	line, err := generateJitterLineChart(result)
+	if err != nil {
+		return nil, err
+	}
+
+	return line, nil
+}
+
+func generateJitterLineChart(result *networkTesting.JitterTestResult) (*charts.Line, error) {
 	line := charts.NewLine()
 	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
 		Title:    "Packet RTT Over Time",
@@ -22,28 +31,5 @@ func (g *Generator) GenerateJitterAnalysisCharts(result *networkTesting.JitterTe
 		rttData[i] = opts.LineData{Value: float64(rtt.Milliseconds())}
 	}
 	line.SetXAxis(xAxis).AddSeries("RTT (ms)", rttData)
-
-	bar := charts.NewBar()
-	bar.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
-		Title: "Jitter Statistics",
-	}))
-
-	statNames := []string{"Min Jitter", "Avg Jitter", "Max Jitter"}
-	statValues := []float64{
-		float64(result.MinJitter.Milliseconds()),
-		float64(result.AvgJitter.Milliseconds()),
-		float64(result.MaxJitter.Milliseconds()),
-	}
-
-	bar.SetXAxis(statNames).AddSeries("Jitter (ms)", generateBarItems(statValues))
-
-	return line, bar, nil
-}
-
-func generateBarItems(values []float64) []opts.BarData {
-	items := make([]opts.BarData, len(values))
-	for i := range values {
-		items[i] = opts.BarData{Value: values[i]}
-	}
-	return items
+	return line, nil
 }

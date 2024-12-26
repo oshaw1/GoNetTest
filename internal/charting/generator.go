@@ -5,14 +5,17 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-// ChartGenerator defines the interface for generating charts
 type ChartGenerator interface {
-	// ICMP Charts
-	GenerateICMPDistributionPie(result *networkTesting.ICMPTestResult) (*charts.Pie, error)
+	GenerateICMPAnalysisCharts(result *networkTesting.ICMPTestResult) (*charts.Pie, error)
+	GenerateJitterAnalysisCharts(result *networkTesting.JitterTestResult) (*charts.Line, error)
+	GenerateRouteAnalysisCharts(result *networkTesting.RouteTestResult) (*charts.Line, error)
+	GenerateDownloadAnalysisCharts(result *networkTesting.AverageSpeedTestResult) (*charts.Line, error)
+	GenerateUploadAnalysisCharts(result *networkTesting.AverageSpeedTestResult) (*charts.Line, error)
+	GenerateBandwidthAnalysisCharts(result *networkTesting.BandwidthTestResult) (*charts.Line, error)
 }
 
 type Generator struct{}
 
-func NewGenerator() *Generator { // Return concrete type
+func NewGenerator() *Generator {
 	return &Generator{}
 }

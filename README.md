@@ -6,24 +6,46 @@ GoNetTest is a powerful all-in-one network test tool with an intuitive web inter
 - Historical Analytics: Access detailed historical data with customizable date ranges, helping identify patterns and troubleshoot network speed regressions
 - Performance Insights: Get deep analytical insights into your network's performance over time, with customizable metrics and thresholds
 
-## To Build -
+## Types of tests:
+
+- ICMP - Internet Control Message Protocol test that measures packet transmission 
+between network hosts. this is just a small "healthcheck" request primarily used to validate connection. The "Jitter" test is a more advanced version of this
+
+- Download - Tests download speeds over time by measuring the rate of data transfer 
+from several different servers and data sizes to the client and calculates the average.
+
+- Upload - Tests upload speeds over time by measuring the rate of data transfer 
+from the client to serveral different servers and measures the average.
+
+- Jitter - Measures the variation in latency between successive packets. Helps identify 
+network stability issues.
+
+- Route - Traces the network path to a target, showing RTT for each hop. Helps identify 
+routing bottlenecks and weak links.
+
+- Bandwidth - Measures overall network capacity by testing maximum throughput at multiple different users to find the point at which performance suffers for x users
+
+## Usage
+
+To change any test/ui parameters such as Download/Upload urls or max requests please do so within `config/config.json`
+
+Once the application is started you can access the dashboard via `{youripaddress/localhost}:7000/dashboard`
+
+Alternatively you can view all accessable endpoints within the startup logs and view the spec within api/openapi.yaml
+
+### To Build -
+- Bash/Go build tools:
 ```
 go build cmd/main.go
 ./main.exe
 ```
-### With Docker -
+- Docker:
 ```
 docker build -t go-net-test-app . ;
-docker run --network host -p 7000:7000 go-net-test-app
+docker run -p 7000:7000 go-net-test-app
 ```
 ## Low Level System Architecture Diagram -
 ![Network Testing Webapp System ARCH](https://github.com/user-attachments/assets/d4563d27-be0a-4aad-b78e-80f2e9b19865)
 
 ## Application Flow Diagram -
 ![Network Testing Application Flow](https://github.com/user-attachments/assets/272cf95b-0e15-4226-8ec4-3e1b6e47495d)
-
-## Types of tests -
- 
-ICMP -
-Download -
-Upload -
