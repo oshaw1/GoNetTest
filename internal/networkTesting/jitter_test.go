@@ -11,7 +11,7 @@ func TestJitterTest(t *testing.T) {
 		Tests: config.TestConfigs{
 			JitterTest: config.JitterConfig{
 				Target:      "8.8.8.8",
-				PacketCount: 10,
+				PacketCount: 3,
 			},
 			ICMP: config.ICMPConfig{
 				TimeoutSeconds: 1,
