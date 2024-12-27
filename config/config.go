@@ -50,9 +50,9 @@ type JitterConfig struct {
 type BandwidthConfig struct {
 	InitialConnections int     `json:"initialConnections"`
 	MaxConnections     int     `json:"maxConnections"`
-	StepSize           int     `json:"stepSize"`     // Change from rampUpStep
-	StepDuration       string  `json:"stepDuration"` // Change from TestDuration
+	StepSize           int     `json:"stepSize"`
 	FailThreshold      float64 `json:"failThreshold"`
+	DownloadURL        string  `json"downloadUrl"`
 }
 
 func NewConfig(filepath string) (*Config, error) {
@@ -108,11 +108,11 @@ func NewConfig(filepath string) (*Config, error) {
 	if config.Tests.Bandwidth.StepSize == 0 {
 		config.Tests.Bandwidth.StepSize = 2
 	}
-	if config.Tests.Bandwidth.StepDuration == "" {
-		config.Tests.Bandwidth.StepDuration = "30s"
-	}
 	if config.Tests.Bandwidth.FailThreshold == 0 {
-		config.Tests.Bandwidth.FailThreshold = 20
+		config.Tests.Bandwidth.FailThreshold = 70 // bandwidth falls off fast with most isps
+	}
+	if len(config.Tests.Bandwidth.DownloadURL) == 0 {
+		config.Tests.Bandwidth.DownloadURL = "http://ipv4.download.thinkbroadband.com/100MB.zip"
 	}
 
 	return config, nil

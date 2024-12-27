@@ -33,8 +33,8 @@
             "initialConnections": 1,
             "maxConnections": 32,
             "rampUpStep": 2,
-            "stepDuration": "30s",
-            "failureThreshold": 20
+            "failThreshold": 80,
+            "downloadUrl":"http://ipv4.download.thinkbroadband.com/100MB.zip"
         }
     }
 }
