@@ -168,7 +168,18 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 			}
 		}
 	case "bandwidth":
-
+		if bandwidthResult, ok := result.(*networkTesting.BandwidthTestResult); ok {
+			bar3dSpeed, bar3dDuration, err := h.charts.GenerateBandwidthAnalysisCharts(bandwidthResult)
+			if err != nil {
+				return fmt.Errorf("failed to generate distribution chart: %w", err)
+			}
+			if _, err := h.repository.SaveChart(bar3dSpeed, "bandwidth", "speed"); err != nil {
+				log.Printf("Failed to save route line chart: %v", err)
+			}
+			if _, err := h.repository.SaveChart(bar3dDuration, "bandwidth", "duration"); err != nil {
+				log.Printf("Failed to save route line chart: %v", err)
+			}
+		}
 	default:
 		return fmt.Errorf("unsupported test type: %s", testType)
 	}

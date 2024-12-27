@@ -45,6 +45,8 @@ func (s ConnectionStep) MarshalJSON() ([]byte, error) {
 type ConnectionResult struct {
 	ID        int
 	BytesRecv int64
+	Duration  time.Duration
+	Speed     float64 // Store individual connection speed in Mbps
 	Error     error
 }
 
@@ -64,7 +66,7 @@ func (t *NetworkTester) RunBandwidthTest() (*BandwidthTestResult, error) {
 		totalTestMB := users * 100 //100MB per user
 
 		fmt.Printf("\nTesting bandwidth with %d concurrent users (%dMB total)\n", users, totalTestMB)
-		step := t.runBandwidthStep(users, testURL)
+		step := t.runStep(users, testURL)
 		result.Steps = append(result.Steps, step)
 		result.TotalData += step.TotalBytes
 
@@ -95,8 +97,8 @@ func (t *NetworkTester) RunBandwidthTest() (*BandwidthTestResult, error) {
 	return result, nil
 }
 
-func (t *NetworkTester) runBandwidthStep(users int, url string) ConnectionStep {
-	start := time.Now()
+func (t *NetworkTester) runStep(users int, url string) ConnectionStep {
+	stepStart := time.Now()
 	step := ConnectionStep{
 		Connections: users,
 		ConnResults: make([]ConnectionResult, 0),
@@ -109,10 +111,16 @@ func (t *NetworkTester) runBandwidthStep(users int, url string) ConnectionStep {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
+			connStart := time.Now()
 			downloaded, err := t.downloadWithProgress(url)
+			duration := time.Since(connStart)
+			speed := calculateMbps(downloaded, duration)
+
 			results <- ConnectionResult{
 				ID:        id,
 				BytesRecv: downloaded,
+				Duration:  duration,
+				Speed:     speed,
 				Error:     err,
 			}
 		}(i)
@@ -130,14 +138,16 @@ func (t *NetworkTester) runBandwidthStep(users int, url string) ConnectionStep {
 			step.TotalBytes += result.BytesRecv
 			successfulUsers++
 
-			userSpeed := calculateMbps(result.BytesRecv, time.Since(start))
-			fmt.Printf("User %d bandwidth: %.2f Mbps\n", result.ID, userSpeed)
+			fmt.Printf("User %d bandwidth: %.2f Mbps (duration: %s)\n",
+				result.ID,
+				result.Speed,
+				result.Duration.Round(time.Millisecond))
 		} else if result.Error != nil {
 			fmt.Printf("User %d error: %v\n", result.ID, result.Error)
 		}
 	}
 
-	step.Duration = time.Since(start).Round(time.Millisecond)
+	step.Duration = time.Since(stepStart).Round(time.Millisecond)
 
 	if successfulUsers > 0 {
 		step.AvgSpeed = calculateMbps(step.TotalBytes/int64(successfulUsers), step.Duration)
@@ -149,7 +159,6 @@ func (t *NetworkTester) runBandwidthStep(users int, url string) ConnectionStep {
 
 	return step
 }
-
 func (t *NetworkTester) shouldStopTest(step ConnectionStep, result *BandwidthTestResult) bool {
 	if len(result.Steps) <= 1 {
 		return false
