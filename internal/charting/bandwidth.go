@@ -15,6 +15,6 @@ func (g *Generator) GenerateBandwidthAnalysisCharts(result *networkTesting.Bandw
 }
 
 func generateBandwidthChart(result *networkTesting.BandwidthTestResult) (*charts.Line, error) {
-	line := charts.NewLine()
+	line := charts.NewLine() // do a 3d bar for this one i think
 	return line, nil
 }

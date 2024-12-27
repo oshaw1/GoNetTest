@@ -20,9 +20,6 @@ func generateRouteRequestPathChart(result *networkTesting.RouteTestResult) (*cha
 
 	for _, hop := range result.Hops {
 		hopLabel := fmt.Sprintf("%d", hop.Number)
-		if hop.Address != "" {
-			hopLabel = fmt.Sprintf("%d\n%s", hop.Number, hop.Address)
-		}
 		xAxis = append(xAxis, hopLabel)
 		if hop.Lost {
 			rttData = append(rttData, opts.LineData{Value: 0.0})
@@ -31,7 +28,7 @@ func generateRouteRequestPathChart(result *networkTesting.RouteTestResult) (*cha
 		}
 	}
 
-	line.SetXAxis(xAxis).AddSeries("RTT (ms)", rttData)
+	line.SetXAxis(xAxis).AddSeries("RTT (s)", rttData)
 	return line, nil
 }
 
