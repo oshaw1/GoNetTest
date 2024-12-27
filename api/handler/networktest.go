@@ -144,9 +144,25 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 			}
 		}
 	case "download":
-		// implement download test
+		if downloadResult, ok := result.(*networkTesting.AverageSpeedTestResult); ok {
+			bar, err := h.charts.GenerateDownloadAnalysisCharts(downloadResult)
+			if err != nil {
+				return fmt.Errorf("failed to generate distribution chart: %w", err)
+			}
+			if _, err := h.repository.SaveChart(bar, "download", "speed"); err != nil {
+				log.Printf("Failed to save route line chart: %v", err)
+			}
+		}
 	case "upload":
-
+		if uploadResult, ok := result.(*networkTesting.AverageSpeedTestResult); ok {
+			bar, err := h.charts.GenerateUploadAnalysisCharts(uploadResult)
+			if err != nil {
+				return fmt.Errorf("failed to generate distribution chart: %w", err)
+			}
+			if _, err := h.repository.SaveChart(bar, "upload", "speed"); err != nil {
+				log.Printf("Failed to save route line chart: %v", err)
+			}
+		}
 	case "route":
 		if routeResult, ok := result.(*networkTesting.RouteTestResult); ok {
 			lineChart, err := h.charts.GenerateRouteAnalysisCharts(routeResult)

@@ -4,8 +4,8 @@
     },
     "tests": {
         "icmp": {
-            "packetCount": 4,
-            "timeoutSeconds": 5
+            "packetCount": 20,
+            "timeoutSeconds": 2
         },
         "speedTestURLs": {
             "downloadUrls": [
