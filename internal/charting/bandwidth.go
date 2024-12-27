@@ -26,15 +26,31 @@ func generateBandwidth3DBarSpeed(result *networkTesting.BandwidthTestResult) (*c
 
 	bar3d.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
-			Title: "Bandwidth Analysis by Connection",
+			Title: "Bandwidth Analysis by Download Speed",
 		}),
 		charts.WithVisualMapOpts(opts.VisualMap{
 			Calculable: opts.Bool(true),
 			Max:        float32(result.MaxThroughput + 25),
 			Min:        0,
 			InRange: &opts.VisualMapInRange{
-				Color: []string{"#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8",
-					"#ffffbf", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"},
+				Color: []string{"#a50026", "#d73027", "#f46d43", "#fdae61", "#fee090",
+					"#ffffbf", "#e0f3f8", "#abd9e9", "#74add1", "#4575b4", "#313695"},
+			},
+		}),
+		charts.WithYAxisOpts(opts.YAxis{
+			Name:         "Speed (Mbps)",
+			NameLocation: "middle",
+			NameGap:      35,
+			AxisLabel: &opts.AxisLabel{
+				Show:         opts.Bool(true),
+				Rotate:       90, // Rotate labels 45 degrees
+				ShowMaxLabel: opts.Bool(true),
+			},
+		}),
+		charts.WithXAxisOpts(opts.XAxis{
+			AxisLabel: &opts.AxisLabel{
+				Show:         opts.Bool(true),
+				ShowMaxLabel: opts.Bool(true),
 			},
 		}),
 	)
@@ -109,7 +125,7 @@ func generateBandwidth3DBarDuration(result *networkTesting.BandwidthTestResult) 
 
 	bar3d.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
-			Title: "Connection Duration Analysis",
+			Title: "Bandwidth Analysis by Download Elapse Time",
 		}),
 		charts.WithVisualMapOpts(opts.VisualMap{
 			Calculable: opts.Bool(true),
@@ -118,6 +134,22 @@ func generateBandwidth3DBarDuration(result *networkTesting.BandwidthTestResult) 
 			InRange: &opts.VisualMapInRange{
 				Color: []string{"#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8",
 					"#ffffbf", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"},
+			},
+		}),
+		charts.WithYAxisOpts(opts.YAxis{
+			Name:         "Elapse Time (s)",
+			NameLocation: "middle",
+			NameGap:      35,
+			AxisLabel: &opts.AxisLabel{
+				Show:         opts.Bool(true),
+				Rotate:       90,
+				ShowMaxLabel: opts.Bool(true),
+			},
+		}),
+		charts.WithXAxisOpts(opts.XAxis{
+			AxisLabel: &opts.AxisLabel{
+				Show:         opts.Bool(true),
+				ShowMaxLabel: opts.Bool(true),
 			},
 		}),
 	)
