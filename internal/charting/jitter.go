@@ -2,6 +2,7 @@ package charting
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
@@ -16,6 +17,19 @@ func (g *Generator) GenerateJitterAnalysisCharts(result *networkTesting.JitterTe
 	}
 
 	return line, nil
+}
+
+func (g *Generator) GenerateHistoricJitterAnalysisCharts(results []*networkTesting.JitterTestResult) (*charts.Bar, error) {
+	if results == nil {
+		return nil, fmt.Errorf("function called with no results")
+	}
+
+	barOverTime, err := generateJitterOverTimeBar(results)
+	if err != nil {
+		return nil, err
+	}
+
+	return barOverTime, nil
 }
 
 func generateJitterLineChart(result *networkTesting.JitterTestResult) (*charts.Line, error) {
@@ -60,4 +74,61 @@ func generateJitterLineChart(result *networkTesting.JitterTestResult) (*charts.L
 
 	line.SetXAxis(xAxis).AddSeries("RTT (ms)", rttData)
 	return line, nil
+}
+
+func generateJitterOverTimeBar(results []*networkTesting.JitterTestResult) (*charts.Bar, error) {
+	bar := charts.NewBar()
+	var xAxis []string
+	var avgJitter []float64
+	var minJitter []float64
+	var maxJitter []float64
+
+	for _, result := range results {
+		var jitters []float64
+		for i := 1; i < len(result.RTTs); i++ {
+			jitter := math.Abs(float64(result.RTTs[i] - result.RTTs[i-1]))
+			jitters = append(jitters, jitter)
+		}
+
+		xAxis = append(xAxis, result.Timestamp.Format("2006-01-02 15:04:05"))
+		avgJitter = append(avgJitter, calculateAverage(jitters))
+		minJitter = append(minJitter, findMin(jitters))
+		maxJitter = append(maxJitter, findMax(jitters))
+	}
+
+	bar.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title:    "Latency Over Time",
+			Subtitle: fmt.Sprintf("Test data from: %v Days", len(results)),
+		}),
+		charts.WithTooltipOpts(opts.Tooltip{
+			Show:      opts.Bool(true),
+			Trigger:   "axis",
+			Formatter: "{b}: {c} Mbps",
+		}),
+		charts.WithYAxisOpts(opts.YAxis{
+			Name:         "RTT",
+			NameLocation: "middle",
+			NameGap:      35,
+		}),
+		charts.WithXAxisOpts(opts.XAxis{
+			AxisLabel: &opts.AxisLabel{
+				Show:         opts.Bool(true),
+				Rotate:       45,
+				ShowMaxLabel: opts.Bool(true),
+			},
+		}),
+		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(true)}),
+		charts.WithGridOpts(opts.Grid{
+			Bottom: "20%",
+			Top:    "10%",
+		}),
+	)
+
+	bar.SetXAxis(xAxis).
+		AddSeries("Min RTT", generateBarItems(minJitter)).
+		AddSeries("Average RTT", generateBarItems(avgJitter)).
+		AddSeries("Max RTT", generateBarItems(maxJitter))
+
+	return bar, nil
 }

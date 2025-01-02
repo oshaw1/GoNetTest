@@ -39,14 +39,25 @@ func (r *Repository) GetTestDataInRange(startDate time.Time, endDate time.Time, 
 
 		switch testType {
 		case "icmp":
-			timeI = allResults[i].ICMP.Timestamp
-			timeJ = allResults[j].ICMP.Timestamp
+			if allResults[i].ICMP != nil && allResults[j].ICMP != nil {
+				timeI = allResults[i].ICMP.Timestamp
+				timeJ = allResults[j].ICMP.Timestamp
+			}
 		case "download":
-			timeI = allResults[i].Download.Timestamp
-			timeJ = allResults[j].Download.Timestamp
+			if allResults[i].Download != nil && allResults[j].Download != nil {
+				timeI = allResults[i].Download.Timestamp
+				timeJ = allResults[j].Download.Timestamp
+			}
 		case "upload":
-			timeI = allResults[i].Download.Timestamp
-			timeJ = allResults[j].Download.Timestamp
+			if allResults[i].Upload != nil && allResults[j].Upload != nil {
+				timeI = allResults[i].Upload.Timestamp
+				timeJ = allResults[j].Upload.Timestamp
+			}
+		case "latency":
+			if allResults[i].Jitter != nil && allResults[j].Jitter != nil {
+				timeI = allResults[i].Jitter.Timestamp
+				timeJ = allResults[j].Jitter.Timestamp
+			}
 		}
 
 		return timeI.After(timeJ)
@@ -92,6 +103,12 @@ func (r *Repository) GetTestData(date string, testType string) (*networkTesting.
 			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
 		}
 		result.Upload = speedResult
+	case "latency":
+		var jitterResult *networkTesting.JitterTestResult
+		if err := json.Unmarshal(content, &jitterResult); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
+		}
+		result.Jitter = jitterResult
 	default:
 		return nil, fmt.Errorf("unsupported test type: %s", testType)
 	}

@@ -54,6 +54,7 @@ func main() {
 	tester := networkTesting.NewNetworkTester(conf)
 
 	networkTestHandler := handler.NewNetworkTestHandler(tester, repository)
+	chartHandler := handler.NewChartHandler(repository, conf)
 	utilHandler := &handler.UtilHandler{}
 	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.tmpl")
 
@@ -73,6 +74,8 @@ func main() {
 
 	mux.HandleFunc("/networktest", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
 	mux.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))
+
+	mux.HandleFunc("/charts/historic", middleware.LoggingMiddleware(chartHandler.GenerateHistoricChart))
 
 	port := ":7000"
 	server := &http.Server{
