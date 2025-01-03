@@ -84,7 +84,7 @@ func generateBandwidth3DBarSpeed(result *networkTesting.BandwidthTestResult) (*c
 
 	yAxis := make([]int, maxConns)
 	for i := range yAxis {
-		yAxis[i] = i + 1
+		yAxis[i] = i
 	}
 
 	bar3d.AddSeries("Bandwidth", data).
@@ -95,6 +95,7 @@ func generateBandwidth3DBarSpeed(result *networkTesting.BandwidthTestResult) (*c
 		)
 
 	bar3d.SetGlobalOptions(
+		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(false)}),
 		charts.WithXAxis3DOpts(opts.XAxis3D{
 			Name: "Step",
 			Data: xAxis,
@@ -102,6 +103,8 @@ func generateBandwidth3DBarSpeed(result *networkTesting.BandwidthTestResult) (*c
 		charts.WithYAxis3DOpts(opts.YAxis3D{
 			Name: "Connection",
 			Data: yAxis,
+			Max:  float32(maxConns),
+			Min:  1,
 		}),
 		charts.WithZAxis3DOpts(opts.ZAxis3D{
 			Name: "Speed (Mbps)",
@@ -182,7 +185,7 @@ func generateBandwidth3DBarDuration(result *networkTesting.BandwidthTestResult) 
 
 	yAxis := make([]int, maxConns)
 	for i := range yAxis {
-		yAxis[i] = i + 1
+		yAxis[i] = i
 	}
 
 	bar3d.AddSeries("Duration", data).
@@ -193,6 +196,7 @@ func generateBandwidth3DBarDuration(result *networkTesting.BandwidthTestResult) 
 		)
 
 	bar3d.SetGlobalOptions(
+		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(false)}),
 		charts.WithXAxis3DOpts(opts.XAxis3D{
 			Name: "Step",
 			Data: xAxis,
@@ -200,6 +204,8 @@ func generateBandwidth3DBarDuration(result *networkTesting.BandwidthTestResult) 
 		charts.WithYAxis3DOpts(opts.YAxis3D{
 			Name: "Connection",
 			Data: yAxis,
+			Max:  float32(maxConns),
+			Min:  1,
 		}),
 		charts.WithZAxis3DOpts(opts.ZAxis3D{
 			Name: "Duration (seconds)",

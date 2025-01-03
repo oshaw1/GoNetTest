@@ -110,7 +110,15 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		h.repository.SaveChart(bar, "upload", "speed_ot")
 	case "route":
-
+		result := make([]*networkTesting.RouteTestResult, len(results))
+		for i, r := range results {
+			result[i] = r.Route
+		}
+		barline, err := h.charts.GenerateHistoricRouteAnalysisCharts(result)
+		if err != nil {
+			return fmt.Errorf("failed to generate upload chart: %w", err)
+		}
+		h.repository.SaveChart(barline, "route", "rtt_ot")
 	case "latency":
 		jitterReults := make([]*networkTesting.JitterTestResult, len(results))
 		for i, r := range results {

@@ -14,7 +14,6 @@ import (
 type ICMPTestResult struct {
 	Host      string
 	Timestamp time.Time
-	TestType  string
 	Sent      int
 	Received  int
 	Lost      int
@@ -49,7 +48,6 @@ func (t *NetworkTester) performICMPTest(c *icmp.PacketConn, dst *net.IPAddr) (*I
 	result := &ICMPTestResult{
 		Host:      dst.String(),
 		Timestamp: time.Now(),
-		TestType:  "icmp",
 		Sent:      count,
 	}
 

@@ -86,7 +86,7 @@ func generateJitterOverTimeBar(results []*networkTesting.JitterTestResult) (*cha
 	for _, result := range results {
 		var jitters []float64
 		for i := 1; i < len(result.RTTs); i++ {
-			jitter := math.Abs(float64(result.RTTs[i] - result.RTTs[i-1]))
+			jitter := math.Abs(float64(result.RTTs[i]-result.RTTs[i-1])) / 1000000
 			jitters = append(jitters, jitter)
 		}
 
@@ -102,12 +102,11 @@ func generateJitterOverTimeBar(results []*networkTesting.JitterTestResult) (*cha
 			Subtitle: fmt.Sprintf("Test data from: %v Days", len(results)),
 		}),
 		charts.WithTooltipOpts(opts.Tooltip{
-			Show:      opts.Bool(true),
-			Trigger:   "axis",
-			Formatter: "{b}: {c} Mbps",
+			Show:    opts.Bool(true),
+			Trigger: "axis",
 		}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name:         "RTT",
+			Name:         "RTT (ms)",
 			NameLocation: "middle",
 			NameGap:      35,
 		}),

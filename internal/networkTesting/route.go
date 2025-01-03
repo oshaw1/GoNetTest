@@ -10,19 +10,19 @@ import (
 	"golang.org/x/net/ipv4"
 )
 
-type RouteHop struct {
-	Number  int           `json:"hop_number"`
-	Address string        `json:"address"`
-	RTT     time.Duration `json:"rtt"`
-	Lost    bool          `json:"packet_lost"`
-}
-
 type RouteTestResult struct {
 	Timestamp time.Time  `json:"timestamp"`
 	Target    string     `json:"target"`
 	Hops      []RouteHop `json:"hops"`
 	Status    string     `json:"status"`
 	Error     error      `json:"error,omitempty"`
+}
+
+type RouteHop struct {
+	Number  int           `json:"hop_number"`
+	Address string        `json:"address"`
+	RTT     time.Duration `json:"rtt"`
+	Lost    bool          `json:"packet_lost"`
 }
 
 func (t *NetworkTester) RunRouteTest() (*RouteTestResult, error) {
