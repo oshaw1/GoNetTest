@@ -35,11 +35,10 @@ func (h *ChartHandler) GenerateChart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	date := r.URL.Query().Get("date")
-	if date != "" {
+	if date == "" {
 		handleError(w, "missing date parameter", nil, http.StatusBadRequest)
 		return
 	}
-
 	result, err := h.repository.GetTestData(date, testType)
 	if err != nil {
 		handleError(w, "error retrieving data", err, http.StatusInternalServerError)

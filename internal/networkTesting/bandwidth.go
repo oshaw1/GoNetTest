@@ -2,7 +2,6 @@ package networkTesting
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,18 +27,6 @@ type ConnectionStep struct {
 	AvgSpeed    float64
 	Duration    time.Duration `json:"duration,string"`
 	Failed      bool
-}
-
-func (s ConnectionStep) MarshalJSON() ([]byte, error) {
-	type Alias ConnectionStep
-
-	return json.Marshal(&struct {
-		Alias
-		Duration string `json:"duration"`
-	}{
-		Alias:    (Alias)(s),
-		Duration: fmt.Sprintf("%.3f s", float64(s.Duration.Nanoseconds())/1e9),
-	})
 }
 
 type ConnectionResult struct {

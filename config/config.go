@@ -71,7 +71,7 @@ func NewConfig(filepath string) (*Config, error) {
 	if config.Tests.ICMP.TimeoutSeconds == 0 {
 		config.Tests.ICMP.TimeoutSeconds = 5
 	}
-	// Set default speed test URLs if none provided
+
 	if len(config.Tests.SpeedTestURLs.DownloadURLs) == 0 {
 		config.Tests.SpeedTestURLs.DownloadURLs = []string{
 			"http://ipv4.download.thinkbroadband.com/512MB.zip",
