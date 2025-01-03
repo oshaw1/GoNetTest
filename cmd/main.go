@@ -75,7 +75,8 @@ func main() {
 	mux.HandleFunc("/networktest", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
 	mux.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))
 
-	mux.HandleFunc("/charts/historic", middleware.LoggingMiddleware(chartHandler.GenerateHistoricChart))
+	mux.HandleFunc("/charts/generate", middleware.LoggingMiddleware(chartHandler.GenerateChart))
+	mux.HandleFunc("/charts/generate-historic", middleware.LoggingMiddleware(chartHandler.GenerateHistoricChart))
 
 	port := ":7000"
 	server := &http.Server{

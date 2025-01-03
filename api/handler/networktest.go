@@ -53,7 +53,7 @@ func (h *NetworkTestHandler) GetResults(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	startDate := r.URL.Query().Get("startDate")
+	startDate := r.URL.Query().Get("date")
 	if startDate != "" {
 		h.getResultsRange(w, testType, startDate, date)
 		return
