@@ -58,6 +58,16 @@ func (r *Repository) GetTestDataInRange(startDate time.Time, endDate time.Time, 
 				timeI = allResults[i].Jitter.Timestamp
 				timeJ = allResults[j].Jitter.Timestamp
 			}
+		case "route":
+			if allResults[i].Route != nil && allResults[j].Route != nil {
+				timeI = allResults[i].Route.Timestamp
+				timeJ = allResults[j].Route.Timestamp
+			}
+		case "bandwidth":
+			if allResults[i].Bandwidth != nil && allResults[j].Bandwidth != nil {
+				timeI = allResults[i].Bandwidth.StartTime
+				timeJ = allResults[j].Bandwidth.StartTime
+			}
 		}
 
 		return timeI.After(timeJ)
@@ -86,29 +96,41 @@ func (r *Repository) GetTestData(date string, testType string) (*networkTesting.
 
 	switch testType {
 	case "icmp":
-		var icmpResult *networkTesting.ICMPTestResult
-		if err := json.Unmarshal(content, &icmpResult); err != nil {
+		var r *networkTesting.ICMPTestResult
+		if err := json.Unmarshal(content, &r); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal ICMP JSON: %w", err)
 		}
-		result.ICMP = icmpResult
+		result.ICMP = r
 	case "download":
-		var speedResult *networkTesting.AverageSpeedTestResult
-		if err := json.Unmarshal(content, &speedResult); err != nil {
+		var r *networkTesting.AverageSpeedTestResult
+		if err := json.Unmarshal(content, &r); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
 		}
-		result.Download = speedResult
+		result.Download = r
 	case "upload":
-		var speedResult *networkTesting.AverageSpeedTestResult
-		if err := json.Unmarshal(content, &speedResult); err != nil {
+		var r *networkTesting.AverageSpeedTestResult
+		if err := json.Unmarshal(content, &r); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
 		}
-		result.Upload = speedResult
+		result.Upload = r
 	case "latency":
-		var jitterResult *networkTesting.JitterTestResult
-		if err := json.Unmarshal(content, &jitterResult); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
+		var r *networkTesting.JitterTestResult
+		if err := json.Unmarshal(content, &r); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal Jitter JSON: %w", err)
 		}
-		result.Jitter = jitterResult
+		result.Jitter = r
+	case "bandwidth":
+		var r *networkTesting.BandwidthTestResult
+		if err := json.Unmarshal(content, &r); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal Bandwidth JSON: %w", err)
+		}
+		result.Bandwidth = r
+	case "route":
+		var r *networkTesting.RouteTestResult
+		if err := json.Unmarshal(content, &r); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal Bandwidth JSON: %w", err)
+		}
+		result.Route = r
 	default:
 		return nil, fmt.Errorf("unsupported test type: %s", testType)
 	}
@@ -145,11 +167,6 @@ func (r *Repository) GetChart(date string, testType string) (bool, string, error
 	log.Printf("GetChartOnDate called with date: %s, testType: %s", date, testType)
 
 	return r.CheckData(date, testType, ".html")
-}
-
-func (r *Repository) isValidDateStr(dateStr string) bool {
-	_, err := time.Parse(dateFormat, dateStr)
-	return err == nil
 }
 
 func (r *Repository) CheckData(date, testType, fileExtension string) (bool, string, error) {

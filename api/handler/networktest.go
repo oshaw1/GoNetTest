@@ -33,6 +33,7 @@ func (h *NetworkTestHandler) HandleNetworkTest(w http.ResponseWriter, r *http.Re
 	testType := r.URL.Query().Get("test")
 	if testType == "" {
 		handleError(w, "missing test type parameter: 'test'", nil, http.StatusBadRequest)
+		return
 	}
 
 	result, err := h.runAndSaveTest(testType)
