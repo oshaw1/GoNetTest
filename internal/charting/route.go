@@ -93,7 +93,6 @@ func generateRoute3DBar(results []*networkTesting.RouteTestResult) (*charts.Bar3
 		}),
 	)
 
-	// Generate data points using actual hop numbers
 	var data []opts.Chart3DData
 	for resultIdx, result := range results {
 		for _, hop := range result.Hops {
@@ -111,19 +110,16 @@ func generateRoute3DBar(results []*networkTesting.RouteTestResult) (*charts.Bar3
 			})
 		}
 	}
-	// Create axis labels
 	xAxis := make([]string, len(results))
 	for i := range xAxis {
-		xAxis[i] = results[i].Timestamp.Format("2006-01-02 15:04:05") // Full date-time format
+		xAxis[i] = results[i].Timestamp.Format("2006-01-02 15:04:05")
 	}
 
-	// Create y-axis labels using hop numbers
-	yAxis := make([]string, len(uniqueHops))
+	yAxis := make([]int, len(uniqueHops))
 	for i := range yAxis {
-		yAxis[i] = fmt.Sprintf("%d", i)
+		yAxis[i] = i + 1
 	}
 
-	// Add the series with the data
 	bar3d.AddSeries(" ", data).
 		SetSeriesOptions(
 			charts.WithBar3DChartOpts(opts.Bar3DChart{
@@ -131,7 +127,7 @@ func generateRoute3DBar(results []*networkTesting.RouteTestResult) (*charts.Bar3
 			}),
 		)
 
-	maxHop := uniqueHops[len(uniqueHops)-1] // Get largest hop number
+	maxHop := len(uniqueHops) // Get largest hop number
 	// Set 3D axis options with explicit step size
 	bar3d.SetGlobalOptions(
 		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(false)}),
@@ -140,17 +136,15 @@ func generateRoute3DBar(results []*networkTesting.RouteTestResult) (*charts.Bar3
 			Data: xAxis,
 		}),
 		charts.WithYAxis3DOpts(opts.YAxis3D{
+			Show: opts.Bool(true),
 			Data: yAxis,
-			Min:  1,
 			Max:  float32(maxHop),
+			Min:  1,
 			Name: "Hop",
+			Type: "value",
 		}),
 		charts.WithZAxis3DOpts(opts.ZAxis3D{
 			Name: "RTT (ms)",
-		}),
-		charts.WithGrid3DOpts(opts.Grid3D{
-			BoxWidth: 100,
-			BoxDepth: 80,
 		}),
 	)
 
