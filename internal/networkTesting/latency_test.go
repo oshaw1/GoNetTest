@@ -6,10 +6,10 @@ import (
 	"github.com/oshaw1/go-net-test/config"
 )
 
-func TestJitterTest(t *testing.T) {
+func TestLatencyTest(t *testing.T) {
 	cfg := &config.Config{
 		Tests: config.TestConfigs{
-			JitterTest: config.JitterConfig{
+			LatencyTest: config.LatencyConfig{
 				Target:      "8.8.8.8",
 				PacketCount: 3,
 			},
@@ -20,9 +20,9 @@ func TestJitterTest(t *testing.T) {
 	}
 	tester := NewNetworkTester(cfg)
 
-	result, err := tester.RunJitterTest()
+	result, err := tester.RunLatencyTest()
 	if err != nil {
-		t.Fatalf("runJitterTest returned unexpected error: %v", err)
+		t.Fatalf("runLatencyTest returned unexpected error: %v", err)
 	}
 
 	if result.PacketLoss < 0 || result.PacketLoss > 100 {
@@ -33,12 +33,12 @@ func TestJitterTest(t *testing.T) {
 		t.Error("Expected at least one RTT measurement")
 	}
 
-	if result.AvgJitter < 0 {
-		t.Errorf("Expected average jitter >= 0, got %v", result.AvgJitter)
+	if result.AvgLatency < 0 {
+		t.Errorf("Expected average Latency >= 0, got %v", result.AvgLatency)
 	}
 
-	if result.MaxJitter < result.MinJitter {
-		t.Errorf("Max jitter %v less than min jitter %v", result.MaxJitter, result.MinJitter)
+	if result.MaxLatency < result.MinLatency {
+		t.Errorf("Max Latency %v less than min Latency %v", result.MaxLatency, result.MinLatency)
 	}
 
 	if result.Status != "SUCCESS" && result.Status != "FAILED" {

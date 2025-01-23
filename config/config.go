@@ -6,6 +6,8 @@ import (
 )
 
 type Config struct {
+	Port string `json:"port"`
+
 	// UI Settings
 	Dash DashboardSettings `json:"dashboard"` // How many days of tests to show in UI
 
@@ -21,7 +23,7 @@ type TestConfigs struct {
 	ICMP          ICMPConfig      `json:"icmp"`
 	SpeedTestURLs SpeedTestURLs   `json:"speedTestURLs"`
 	RouteTest     RouteConfig     `json:"routeTest"`
-	JitterTest    JitterConfig    `json:"jitterTest"`
+	LatencyTest   LatencyConfig   `json:"latencyTest"`
 	Bandwidth     BandwidthConfig `json:"bandwidth"`
 }
 
@@ -41,7 +43,7 @@ type RouteConfig struct {
 	TimeoutSeconds int    `json:"timeoutSeconds"`
 }
 
-type JitterConfig struct {
+type LatencyConfig struct {
 	Target         string `json:"target"`
 	PacketCount    int    `json:"packetCount"`
 	TimeoutSeconds int    `json:"timeoutSeconds"`
@@ -61,7 +63,11 @@ func NewConfig(filepath string) (*Config, error) {
 		return nil, err
 	}
 
-	if config.Dash.RecentDays == 0 {
+	if config.Port == "" {
+		config.Port = ":7000" // Default to port 7000
+	}
+
+	if config.Dash.RecentDays <= 0 {
 		config.Dash.RecentDays = 7 // Default to showing last 7 days
 	}
 
@@ -92,11 +98,11 @@ func NewConfig(filepath string) (*Config, error) {
 	if config.Tests.RouteTest.TimeoutSeconds == 0 {
 		config.Tests.RouteTest.TimeoutSeconds = 5
 	}
-	if config.Tests.JitterTest.PacketCount == 0 {
-		config.Tests.JitterTest.PacketCount = 10
+	if config.Tests.LatencyTest.PacketCount == 0 {
+		config.Tests.LatencyTest.PacketCount = 10
 	}
-	if config.Tests.JitterTest.TimeoutSeconds == 0 {
-		config.Tests.JitterTest.TimeoutSeconds = 5
+	if config.Tests.LatencyTest.TimeoutSeconds == 0 {
+		config.Tests.LatencyTest.TimeoutSeconds = 5
 	}
 
 	if config.Tests.Bandwidth.InitialConnections == 0 {

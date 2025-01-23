@@ -21,7 +21,7 @@ type TestResult struct {
 	Download  *AverageSpeedTestResult `json:"Download,omitempty"`
 	Upload    *AverageSpeedTestResult `json:"Upload,omitempty"`
 	Route     *RouteTestResult        `json:"Route,omitempty"`
-	Jitter    *JitterTestResult       `json:"Jitter,omitempty"`
+	Latency   *LatencyTestResult      `json:"Jitter,omitempty"`
 	Bandwidth *BandwidthTestResult    `json:"Bandwidth,omitempty"`
 }
 
@@ -40,7 +40,7 @@ func (t *NetworkTester) RunTest(testType string) (any, error) {
 	case "route":
 		result, err = t.RunRouteTest()
 	case "latency":
-		result, err = t.RunJitterTest()
+		result, err = t.RunLatencyTest()
 	case "bandwidth":
 		result, err = t.RunBandwidthTest()
 	default:

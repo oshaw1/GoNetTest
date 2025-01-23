@@ -1,4 +1,5 @@
 {
+    "port": ":7000",
     "dashboard": {
         "recentDays": 7
     },

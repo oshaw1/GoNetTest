@@ -10,21 +10,21 @@ import (
 	"golang.org/x/net/ipv4"
 )
 
-type JitterTestResult struct {
+type LatencyTestResult struct {
 	Timestamp   time.Time       `json:"timestamp"`
 	Target      string          `json:"target"`
 	PacketCount int             `json:"packet_count"`
-	AvgJitter   time.Duration   `json:"avg_jitter"`
-	MaxJitter   time.Duration   `json:"max_jitter"`
-	MinJitter   time.Duration   `json:"min_jitter"`
+	AvgLatency  time.Duration   `json:"avg_latency"`
+	MaxLatency  time.Duration   `json:"max_latency"`
+	MinLatency  time.Duration   `json:"min_latency"`
 	PacketLoss  float64         `json:"packet_loss"`
 	RTTs        []time.Duration `json:"rtts"`
 	Status      string          `json:"status"`
 	Error       error           `json:"error,omitempty"`
 }
 
-func (t *NetworkTester) RunJitterTest() (*JitterTestResult, error) {
-	dst, err := net.ResolveIPAddr("ip4", t.config.Tests.JitterTest.Target)
+func (t *NetworkTester) RunLatencyTest() (*LatencyTestResult, error) {
+	dst, err := net.ResolveIPAddr("ip4", t.config.Tests.LatencyTest.Target)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve target IP: %w", err)
 	}
@@ -35,19 +35,19 @@ func (t *NetworkTester) RunJitterTest() (*JitterTestResult, error) {
 	}
 	defer conn.Close()
 
-	result := &JitterTestResult{
+	result := &LatencyTestResult{
 		Timestamp:   time.Now(),
-		Target:      t.config.Tests.JitterTest.Target,
-		PacketCount: t.config.Tests.JitterTest.PacketCount,
+		Target:      t.config.Tests.LatencyTest.Target,
+		PacketCount: t.config.Tests.LatencyTest.PacketCount,
 		RTTs:        make([]time.Duration, 0),
 	}
 
 	var lastRTT time.Duration
-	var totalJitter time.Duration
+	var totalLatency time.Duration
 	var lostPackets int
 
 	for i := 0; i < result.PacketCount; i++ {
-		rtt, err := sendJitterPing(conn, dst, i, t.config.Tests.ICMP.TimeoutSeconds)
+		rtt, err := ping(conn, dst, i, t.config.Tests.ICMP.TimeoutSeconds)
 		if err != nil {
 			lostPackets++
 			continue
@@ -56,14 +56,14 @@ func (t *NetworkTester) RunJitterTest() (*JitterTestResult, error) {
 		result.RTTs = append(result.RTTs, rtt)
 
 		if i > 0 {
-			jitter := abs(rtt - lastRTT)
-			totalJitter += jitter
+			Latency := abs(rtt - lastRTT)
+			totalLatency += Latency
 
-			if jitter > result.MaxJitter {
-				result.MaxJitter = jitter
+			if Latency > result.MaxLatency {
+				result.MaxLatency = Latency
 			}
-			if jitter < result.MinJitter || result.MinJitter == 0 {
-				result.MinJitter = jitter
+			if Latency < result.MinLatency || result.MinLatency == 0 {
+				result.MinLatency = Latency
 			}
 		}
 
@@ -79,14 +79,14 @@ func (t *NetworkTester) RunJitterTest() (*JitterTestResult, error) {
 
 	result.PacketLoss = float64(lostPackets) / float64(result.PacketCount) * 100
 	if len(result.RTTs) > 1 {
-		result.AvgJitter = totalJitter / time.Duration(len(result.RTTs)-1)
+		result.AvgLatency = totalLatency / time.Duration(len(result.RTTs)-1)
 	}
 	result.Status = "SUCCESS"
 
 	return result, nil
 }
 
-func sendJitterPing(conn *icmp.PacketConn, dst *net.IPAddr, seq int, timeout int) (time.Duration, error) {
+func ping(conn *icmp.PacketConn, dst *net.IPAddr, seq int, timeout int) (time.Duration, error) {
 	start := time.Now()
 
 	wm := icmp.Message{
@@ -95,7 +95,7 @@ func sendJitterPing(conn *icmp.PacketConn, dst *net.IPAddr, seq int, timeout int
 		Body: &icmp.Echo{
 			ID:   os.Getpid() & 0xffff,
 			Seq:  seq,
-			Data: []byte("JITTER"),
+			Data: []byte("Latency"),
 		},
 	}
 

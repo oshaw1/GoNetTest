@@ -54,9 +54,9 @@ func (r *Repository) GetTestDataInRange(startDate time.Time, endDate time.Time, 
 				timeJ = allResults[j].Upload.Timestamp
 			}
 		case "latency":
-			if allResults[i].Jitter != nil && allResults[j].Jitter != nil {
-				timeI = allResults[i].Jitter.Timestamp
-				timeJ = allResults[j].Jitter.Timestamp
+			if allResults[i].Latency != nil && allResults[j].Latency != nil {
+				timeI = allResults[i].Latency.Timestamp
+				timeJ = allResults[j].Latency.Timestamp
 			}
 		case "route":
 			if allResults[i].Route != nil && allResults[j].Route != nil {
@@ -114,11 +114,11 @@ func (r *Repository) GetTestData(date string, testType string) (*networkTesting.
 		}
 		result.Upload = r
 	case "latency":
-		var r *networkTesting.JitterTestResult
+		var r *networkTesting.LatencyTestResult
 		if err := json.Unmarshal(content, &r); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Jitter JSON: %w", err)
+			return nil, fmt.Errorf("failed to unmarshal Latency JSON: %w", err)
 		}
-		result.Jitter = r
+		result.Latency = r
 	case "bandwidth":
 		var r *networkTesting.BandwidthTestResult
 		if err := json.Unmarshal(content, &r); err != nil {

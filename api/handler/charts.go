@@ -120,11 +120,11 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		h.repository.SaveChart(barline, "route", "rtt_ot")
 	case "latency":
-		jitterReults := make([]*networkTesting.JitterTestResult, len(results))
+		latencyResults := make([]*networkTesting.LatencyTestResult, len(results))
 		for i, r := range results {
-			jitterReults[i] = r.Jitter
+			latencyResults[i] = r.Latency
 		}
-		bar, err := h.charts.GenerateHistoricJitterAnalysisCharts(jitterReults)
+		bar, err := h.charts.GenerateHistoricLatencyAnalysisCharts(latencyResults)
 		if err != nil {
 			return fmt.Errorf("failed to generate download chart: %w", err)
 		}
@@ -172,7 +172,7 @@ func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, 
 			log.Printf("Failed to save route chart: %v", err)
 		}
 	case "latency":
-		lineChart, err := h.charts.GenerateJitterAnalysisCharts(result.Jitter)
+		lineChart, err := h.charts.GenerateLatencyAnalysisCharts(result.Latency)
 		if err != nil {
 			return fmt.Errorf("failed to generate latency chart: %w", err)
 		}

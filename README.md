@@ -17,7 +17,7 @@ from several different servers and data sizes to the client and calculates the a
 - Upload - Tests upload speeds over time by measuring the rate of data transfer 
 from the client to serveral different servers and measures the average.
 
-- Jitter - Measures the variation in latency between successive packets. Helps identify 
+- Latency - Measures the variation in latency between successive packets. Helps identify 
 network stability issues.
 
 - Route - Traces the network path to a target, showing RTT for each hop. Helps identify 

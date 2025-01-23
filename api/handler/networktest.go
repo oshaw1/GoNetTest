@@ -175,8 +175,8 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 			}
 		}
 	case "latency":
-		if latencyResult, ok := result.(*networkTesting.JitterTestResult); ok {
-			lineChart, err := h.charts.GenerateJitterAnalysisCharts(latencyResult)
+		if latencyResult, ok := result.(*networkTesting.LatencyTestResult); ok {
+			lineChart, err := h.charts.GenerateLatencyAnalysisCharts(latencyResult)
 			if err != nil {
 				return fmt.Errorf("failed to generate distribution chart: %w", err)
 			}

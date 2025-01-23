@@ -7,7 +7,7 @@ import (
 
 type ChartGenerator interface {
 	GenerateICMPAnalysisCharts(result *networkTesting.ICMPTestResult) (*charts.Pie, error)
-	GenerateJitterAnalysisCharts(result *networkTesting.JitterTestResult) (*charts.Line, error)
+	GenerateJitterAnalysisCharts(result *networkTesting.LatencyTestResult) (*charts.Line, error)
 	GenerateRouteAnalysisCharts(result *networkTesting.RouteTestResult) (*charts.Line, error)
 	GenerateDownloadAnalysisCharts(result *networkTesting.AverageSpeedTestResult) (*charts.Line, error)
 	GenerateUploadAnalysisCharts(result *networkTesting.AverageSpeedTestResult) (*charts.Line, error)

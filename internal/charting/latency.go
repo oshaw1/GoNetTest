@@ -10,8 +10,8 @@ import (
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func (g *Generator) GenerateJitterAnalysisCharts(result *networkTesting.JitterTestResult) (*charts.Line, error) {
-	line, err := generateJitterLineChart(result)
+func (g *Generator) GenerateLatencyAnalysisCharts(result *networkTesting.LatencyTestResult) (*charts.Line, error) {
+	line, err := generateLatencyLineChart(result)
 	if err != nil {
 		return nil, err
 	}
@@ -19,12 +19,12 @@ func (g *Generator) GenerateJitterAnalysisCharts(result *networkTesting.JitterTe
 	return line, nil
 }
 
-func (g *Generator) GenerateHistoricJitterAnalysisCharts(results []*networkTesting.JitterTestResult) (*charts.Bar, error) {
+func (g *Generator) GenerateHistoricLatencyAnalysisCharts(results []*networkTesting.LatencyTestResult) (*charts.Bar, error) {
 	if results == nil {
 		return nil, fmt.Errorf("function called with no results")
 	}
 
-	barOverTime, err := generateJitterOverTimeBar(results)
+	barOverTime, err := generateLatencyOverTimeBar(results)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (g *Generator) GenerateHistoricJitterAnalysisCharts(results []*networkTesti
 	return barOverTime, nil
 }
 
-func generateJitterLineChart(result *networkTesting.JitterTestResult) (*charts.Line, error) {
+func generateLatencyLineChart(result *networkTesting.LatencyTestResult) (*charts.Line, error) {
 	var totalTime time.Duration
 	for _, rtt := range result.RTTs {
 		totalTime += rtt
@@ -76,24 +76,24 @@ func generateJitterLineChart(result *networkTesting.JitterTestResult) (*charts.L
 	return line, nil
 }
 
-func generateJitterOverTimeBar(results []*networkTesting.JitterTestResult) (*charts.Bar, error) {
+func generateLatencyOverTimeBar(results []*networkTesting.LatencyTestResult) (*charts.Bar, error) {
 	bar := charts.NewBar()
 	var xAxis []string
-	var avgJitter []float64
-	var minJitter []float64
-	var maxJitter []float64
+	var avgLatency []float64
+	var minLatency []float64
+	var maxLatency []float64
 
 	for _, result := range results {
-		var jitters []float64
+		var Latencys []float64
 		for i := 1; i < len(result.RTTs); i++ {
-			jitter := math.Abs(float64(result.RTTs[i]-result.RTTs[i-1])) / 1000000
-			jitters = append(jitters, jitter)
+			Latency := math.Abs(float64(result.RTTs[i]-result.RTTs[i-1])) / 1000000
+			Latencys = append(Latencys, Latency)
 		}
 
 		xAxis = append(xAxis, result.Timestamp.Format("2006-01-02 15:04:05"))
-		avgJitter = append(avgJitter, calculateAverage(jitters))
-		minJitter = append(minJitter, findMin(jitters))
-		maxJitter = append(maxJitter, findMax(jitters))
+		avgLatency = append(avgLatency, calculateAverage(Latencys))
+		minLatency = append(minLatency, findMin(Latencys))
+		maxLatency = append(maxLatency, findMax(Latencys))
 	}
 
 	bar.SetGlobalOptions(
@@ -125,9 +125,9 @@ func generateJitterOverTimeBar(results []*networkTesting.JitterTestResult) (*cha
 	)
 
 	bar.SetXAxis(xAxis).
-		AddSeries("Min RTT", generateBarItems(minJitter)).
-		AddSeries("Average RTT", generateBarItems(avgJitter)).
-		AddSeries("Max RTT", generateBarItems(maxJitter))
+		AddSeries("Min RTT", generateBarItems(minLatency)).
+		AddSeries("Average RTT", generateBarItems(avgLatency)).
+		AddSeries("Max RTT", generateBarItems(maxLatency))
 
 	return bar, nil
 }
