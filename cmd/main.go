@@ -13,6 +13,7 @@ import (
 	"github.com/oshaw1/go-net-test/config"
 	"github.com/oshaw1/go-net-test/internal/dataManagement"
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
+	"github.com/oshaw1/go-net-test/internal/scheduler"
 )
 
 func printBanner() {
@@ -39,6 +40,7 @@ func getOutboundIP() string {
 
 func main() {
 	printBanner()
+	ip := getOutboundIP()
 
 	err := os.MkdirAll("data/output/", 0755)
 	if err != nil {
@@ -52,12 +54,16 @@ func main() {
 
 	repository := dataManagement.NewRepository("data/output", conf)
 	tester := networkTesting.NewNetworkTester(conf)
+	scheduler := scheduler.NewScheduler("http://" + ip + conf.Port)
 
+	schedulerHandler := handler.NewSchedulerHandler(scheduler)
 	networkTestHandler := handler.NewNetworkTestHandler(tester, repository)
 	chartHandler := handler.NewChartHandler(repository, conf)
 	utilHandler := &handler.UtilHandler{}
 	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.tmpl")
 
+	scheduler.Start()
+	defer scheduler.Stop()
 	mux := middleware.NewRouteMux()
 
 	fs := http.FileServer(http.Dir("web/static"))
@@ -78,19 +84,20 @@ func main() {
 	mux.HandleFunc("/charts/generate", middleware.LoggingMiddleware(chartHandler.GenerateChart))
 	mux.HandleFunc("/charts/generate-historic", middleware.LoggingMiddleware(chartHandler.GenerateHistoricChart))
 
-	port := ":7000"
+	mux.HandleFunc("/schedule/create", middleware.LoggingMiddleware(schedulerHandler.HandleCreateSchedule))
+	mux.HandleFunc("/schedule/list", middleware.LoggingMiddleware(schedulerHandler.HandleGetSchedules))
+
 	server := &http.Server{
 		Handler:      mux,
-		Addr:         port,
+		Addr:         conf.Port,
 		ReadTimeout:  5 * time.Minute,
 		WriteTimeout: 5 * time.Minute,
 		IdleTimeout:  120 * time.Second,
 	}
 
-	ip := getOutboundIP()
-	mux.PrintRoutes(ip, port)
+	mux.PrintRoutes(ip, conf.Port)
 
-	log.Printf("Server starting on http://%s%s\n", ip, port)
+	log.Printf("Server starting on http://%s%s\n", ip, conf.Port)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
