@@ -68,3 +68,35 @@ func TestDeleteSchedule(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
+
+func TestEditTask(t *testing.T) {
+	s := NewScheduler("http://test.com", "test_schedules.json")
+
+	originalTask := &Task{
+		Name:      "test123",
+		TestType:  "jitter",
+		DateTime:  time.Now(),
+		Recurring: true,
+		Interval:  "daily",
+		Active:    true,
+	}
+	s.Schedule[originalTask.Name] = originalTask
+
+	updatedTask := Task{
+		Name:      "updated",
+		TestType:  "latency",
+		Recurring: false,
+		Active:    false,
+	}
+
+	task, err := s.EditTask("test123", updatedTask)
+	assert.NoError(t, err)
+	assert.Equal(t, "updated", task.Name)
+	assert.Equal(t, "latency", task.TestType)
+	assert.False(t, task.Recurring)
+	assert.False(t, task.Active)
+
+	_, err = s.EditTask("nonexistent", updatedTask)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
+}
