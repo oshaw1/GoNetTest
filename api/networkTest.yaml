@@ -1,0 +1,221 @@
+openapi: 3.0.0
+info:
+ title: Network Test API
+ version: 1.0.0
+
+paths:
+ /networktest:
+   get:
+     summary: Run network test
+     parameters:
+       - name: test
+         in: query
+         required: true
+         schema:
+           type: string
+           enum: [icmp, download, upload, route, latency, bandwidth]
+     responses:
+       '200':
+         description: Test results
+         content:
+           application/json:
+             schema:
+               oneOf:
+                 - $ref: '#/components/schemas/ICMPTestResult'
+                 - $ref: '#/components/schemas/AverageSpeedTestResult'
+                 - $ref: '#/components/schemas/RouteTestResult' 
+                 - $ref: '#/components/schemas/LatencyTestResult'
+                 - $ref: '#/components/schemas/BandwidthTestResult'
+       '400':
+         description: Missing test type
+       '500':
+         description: Test execution failed
+
+ /networktest/test-results:
+   get:
+     summary: Get test results
+     parameters:
+       - name: test
+         in: query
+         required: true
+         schema:
+           type: string
+           enum: [icmp, download, upload, route, latency, bandwidth]
+       - name: date
+         in: query
+         schema:
+           type: string
+           format: date
+       - name: startDate
+         in: query
+         schema:
+           type: string
+           format: date
+     responses:
+       '200':
+         description: Test results
+         content:
+           application/json:
+             schema:
+               oneOf:
+                 - $ref: '#/components/schemas/ICMPTestResult'
+                 - $ref: '#/components/schemas/AverageSpeedTestResult'
+                 - $ref: '#/components/schemas/RouteTestResult'
+                 - $ref: '#/components/schemas/LatencyTestResult'
+                 - $ref: '#/components/schemas/BandwidthTestResult'
+       '400':
+         description: Invalid parameters
+       '500':
+         description: Failed to retrieve results
+
+components:
+ schemas:
+   BandwidthTestResult:
+     type: object
+     properties:
+       start_time:
+         type: string
+         format: date-time
+       end_time:
+         type: string
+         format: date-time
+       optimal_conns:
+         type: integer
+       max_throughput:
+         type: number
+       failure_point:
+         type: integer
+       total_data:
+         type: integer
+         format: int64
+         
+   ICMPTestResult:
+     type: object
+     properties:
+       host:
+         type: string
+       timestamp:
+         type: string
+         format: date-time
+       sent:
+         type: integer
+       received:
+         type: integer
+       lost:
+         type: integer
+       min_rtt:
+         type: string
+         format: duration
+       max_rtt:
+         type: string
+         format: duration
+       avg_rtt:
+         type: string
+         format: duration
+
+   LatencyTestResult: 
+     type: object
+     properties:
+       timestamp:
+         type: string
+         format: date-time
+       target:
+         type: string
+       packet_count:
+         type: integer
+       avg_latency:
+         type: string
+         format: duration
+       max_latency:
+         type: string
+         format: duration
+       min_latency:
+         type: string
+         format: duration
+       packet_loss:
+         type: number
+       rtts:
+         type: array
+         items:
+           type: string
+           format: duration
+       status:
+         type: string
+
+   RouteTestResult:
+     type: object
+     properties:
+       timestamp:
+         type: string
+         format: date-time
+       target:
+         type: string
+       hops:
+         type: array
+         items:
+           $ref: '#/components/schemas/RouteHop'
+       status:
+         type: string
+
+   RouteHop:
+     type: object
+     properties:
+       address:
+         type: string
+       hostname: 
+         type: string
+       rtt:
+         type: string
+         format: duration
+
+    AverageSpeedTestResult:
+      type: object
+      required:
+        - timestamp
+        - status
+        - average_mbps
+        - elapsed_time
+        - bytes_received
+        - tested_urls
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [completed, failed, in_progress]
+        average_mbps:
+          type: number
+          format: float64
+          example: 125.45
+        elapsed_time:
+          type: string
+          format: duration
+        bytes_received:
+          type: integer
+          format: int64
+        tested_urls:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/SpeedTestResult'
+        error:
+          type: string
+          nullable: true
+
+    SpeedTestResult:
+      type: object
+      required:
+        - url
+        - speed
+        - time
+      properties:
+        url:
+          type: string
+          example: "http://speedtest.server.com/100mb.test"
+        speed:
+          type: number
+          format: float64
+          example: 95.32
+        time:
+          type: string
+          format: duration

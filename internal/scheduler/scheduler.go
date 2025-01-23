@@ -50,7 +50,7 @@ func (s *Scheduler) Start() {
 			log.Printf("Error formatting tasks: %v", err)
 			return
 		}
-		log.Printf("Scheduler Successfully Loaded %d tasks from %s \n Schedule: %s ", len(s.Schedule), s.schedulePath, tasksJSON)
+		log.Printf("Scheduler Successfully Loaded %d tasks from %s \nScheduled Tasks: %s ", len(s.Schedule), s.schedulePath, tasksJSON)
 	}
 
 	go s.run()

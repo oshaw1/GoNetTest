@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info:
+ title: Charts API
+ version: 1.0.0
+
+paths:
+ /charts/generate:
+   get:
+     summary: Generate chart for a specific test and date
+     parameters:
+       - name: test
+         in: query
+         required: true
+         schema:
+           type: string
+           enum: [icmp, download, upload, route, latency, bandwidth]
+       - name: date
+         in: query
+         required: true
+         schema:
+           type: string
+           format: date
+           example: "2024-01-23"
+     responses:
+       '200':
+         description: Chart generated successfully
+       '400':
+         description: Invalid test type or date format
+       '500':
+         description: Failed to generate chart
+
+ /charts/generate-historic:
+   get:
+     summary: Generate historic chart over multiple days
+     parameters:
+       - name: test
+         in: query
+         required: true
+         schema:
+           type: string
+           enum: [icmp, download, upload, route, latency, bandwidth]
+       - name: days
+         in: query
+         required: true
+         schema:
+           type: integer
+           minimum: 1
+           example: 7
+     responses:
+       '200':
+         description: Historic chart generated successfully
+       '400':
+         description: Invalid test type or days parameter
+       '500':
+         description: Failed to generate chart

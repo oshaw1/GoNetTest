@@ -2,7 +2,7 @@
 GoNetTest is a powerful all-in-one network test tool with an intuitive web interface. Written in Go and HTMX, it provides network analysis and helps detect regressions through its feature set:
 
 - Real-time Performance Visualization: Generate interactive charts and graphs showcasing network metrics
-- Scheduled Testing: Set up automated test intervals - ensuring continuous network monitoring without manual intervention
+- Scheduled Testing: Put together a task schedule to automate tests and chart generation - ensuring continuous network monitoring without manual intervention
 - Historical Analytics: Access detailed historical data with customizable date ranges, helping identify patterns and troubleshoot network speed regressions
 - Performance Insights: Get deep analytical insights into your network's performance over time, with customizable metrics and thresholds
 

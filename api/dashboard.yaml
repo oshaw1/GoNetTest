@@ -1,0 +1,83 @@
+openapi: 3.0.0
+info:
+ title: Dashboard API
+ version: 1.0.0
+
+paths:
+ /dashboard/:
+   get:
+     summary: Serve main dashboard page
+     responses:
+       '200':
+         description: Dashboard HTML page
+       '500':
+         description: Template rendering error
+
+ /dashboard/recent-tests-quadrant:
+   get:
+     summary: Get recent tests quadrant HTML
+     responses:
+       '200':
+         description: Recent tests quadrant HTML
+         content:
+           text/html:
+             schema:
+               type: string
+       '500':
+         description: Error generating quadrant
+
+ /dashboard/chart:
+   get:
+     summary: Get chart HTML for specific test and date
+     parameters:
+       - name: date
+         in: query
+         required: true
+         schema:
+           type: string
+           format: date
+       - name: test
+         in: query
+         required: true
+         schema:
+           type: string
+           enum: [icmp, download, upload]
+     responses:
+       '200':
+         description: Chart HTML
+         content:
+           text/html:
+             schema:
+               type: string
+       '400':
+         description: Invalid parameters
+       '500':
+         description: Error generating chart
+
+ /dashboard/data:
+   get:
+     summary: Get test data as formatted HTML
+     parameters:
+       - name: date
+         in: query
+         required: true
+         schema:
+           type: string
+           format: date
+       - name: type
+         in: query
+         schema:
+           type: string
+           enum: [icmp, download, upload]
+           default: icmp
+     responses:
+       '200':
+         description: Formatted test data HTML
+         content:
+           text/html:
+             schema:
+               type: string
+       '400':
+         description: Invalid parameters
+       '500':
+         description: Error retrieving or formatting data

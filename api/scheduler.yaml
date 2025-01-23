@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+ title: Task Scheduler API
+ version: 1.0.0
+
+paths:
+ /schedule/create:
+   post:
+     summary: Create new scheduled task
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Task'
+     responses:
+       '201':
+         content:
+           application/json:
+             schema:
+               type: object
+               additionalProperties:
+                 $ref: '#/components/schemas/Task'
+       '400':
+         description: Invalid request body
+       '405':
+         description: Method not allowed
+
+ /schedule/list:
+   get:
+     summary: Get all scheduled tasks
+     responses:
+       '200':
+         content:
+           application/json:
+             schema:
+               type: object
+               additionalProperties:
+                 $ref: '#/components/schemas/Task'
+       '405':
+         description: Method not allowed
+
+ /schedule/export:
+   get:
+     parameters:
+       - name: filepath
+         in: query
+         schema:
+           type: string
+           default: data/schedules.json
+     responses:
+       '200':
+         description: Schedules exported successfully
+       '500':
+         description: Export failed
+       '405':
+         description: Method not allowed
+
+ /schedule/import:
+   post:
+     parameters:
+       - name: filepath
+         in: query
+         schema:
+           type: string
+           default: data/schedules.json
+     responses:
+       '200':
+         description: Schedules imported successfully
+       '500':
+         description: Import failed
+       '405':
+         description: Method not allowed
+
+ /schedule/delete:
+   delete:
+     parameters:
+       - name: id
+         in: query
+         required: true
+         schema:
+           type: string
+     responses:
+       '200':
+         description: Task deleted
+       '400':
+         description: Missing schedule ID
+       '404':
+         description: Task not found
+       '405':
+         description: Method not allowed
+
+ /schedule/edit:
+   put:
+     parameters:
+       - name: id
+         in: query
+         required: true
+         schema:
+           type: string
+     requestBody:
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/Task'
+     responses:
+       '200':
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/Task'
+       '400':
+         description: Invalid request body or missing ID
+       '404':
+         description: Task not found
+       '405':
+         description: Method not allowed
+
+components:
+ schemas:
+   Task:
+     type: object
+     properties:
+       name:
+         type: string
+       test_type:
+         type: string
+         nullable: true
+       chart_type:
+         type: string
+         nullable: true
+       recent_days:
+         type: integer
+         nullable: true
+       datetime:
+         type: string
+         format: date-time
+       recurring:
+         type: boolean
+       interval:
+         type: string
+         enum: [daily, weekly, monthly]
+       active:
+         type: boolean
+     required:
+       - name
+       - datetime
