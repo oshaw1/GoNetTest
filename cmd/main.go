@@ -18,11 +18,11 @@ import (
 
 func printBanner() {
 	banner := `
-    =============================================
+=================================================
      goNetTest - Network Testing Made Simple
      Created by Owen Shaw
      GitHub: github.com/oshaw1
-    =============================================
+=================================================
     `
 	fmt.Println(banner)
 }
@@ -54,7 +54,7 @@ func main() {
 
 	repository := dataManagement.NewRepository("data/output", conf)
 	tester := networkTesting.NewNetworkTester(conf)
-	scheduler := scheduler.NewScheduler("http://" + ip + conf.Port)
+	scheduler := scheduler.NewScheduler("http://"+ip+conf.Port, conf.Scheduler.Schedule)
 
 	schedulerHandler := handler.NewSchedulerHandler(scheduler)
 	networkTestHandler := handler.NewNetworkTestHandler(tester, repository)
@@ -62,8 +62,6 @@ func main() {
 	utilHandler := &handler.UtilHandler{}
 	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.tmpl")
 
-	scheduler.Start()
-	defer scheduler.Stop()
 	mux := middleware.NewRouteMux()
 
 	fs := http.FileServer(http.Dir("web/static"))
@@ -85,7 +83,11 @@ func main() {
 	mux.HandleFunc("/charts/generate-historic", middleware.LoggingMiddleware(chartHandler.GenerateHistoricChart))
 
 	mux.HandleFunc("/schedule/create", middleware.LoggingMiddleware(schedulerHandler.HandleCreateSchedule))
-	mux.HandleFunc("/schedule/list", middleware.LoggingMiddleware(schedulerHandler.HandleGetSchedules))
+	mux.HandleFunc("/schedule/list", middleware.LoggingMiddleware(schedulerHandler.HandleGetSchedule))
+	mux.HandleFunc("/schedule/export", middleware.LoggingMiddleware(schedulerHandler.HandleExportSchedule))
+	mux.HandleFunc("/schedule/import", middleware.LoggingMiddleware(schedulerHandler.HandleImportSchedule))
+	mux.HandleFunc("/schedule/delete", middleware.LoggingMiddleware(schedulerHandler.HandleDeleteSchedule))
+	mux.HandleFunc("/schedule/edit", middleware.LoggingMiddleware(schedulerHandler.HandleEditSchedule))
 
 	server := &http.Server{
 		Handler:      mux,
@@ -97,7 +99,9 @@ func main() {
 
 	mux.PrintRoutes(ip, conf.Port)
 
-	log.Printf("Server starting on http://%s%s\n", ip, conf.Port)
+	scheduler.Start()
+	defer scheduler.Stop()
+	log.Printf("Server accessible on http://%s%s\n", ip, conf.Port)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

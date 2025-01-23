@@ -9,10 +9,13 @@ type Config struct {
 	Port string `json:"port"`
 
 	// UI Settings
-	Dash DashboardSettings `json:"dashboard"` // How many days of tests to show in UI
+	Dash DashboardSettings `json:"dashboard"`
 
-	// Test Settings
+	// Test Configs
 	Tests TestConfigs `json:"tests"`
+
+	// Scheduler Config
+	Scheduler SchedulerConfig `json:"scheduler"`
 }
 
 type DashboardSettings struct {
@@ -25,6 +28,10 @@ type TestConfigs struct {
 	RouteTest     RouteConfig     `json:"routeTest"`
 	LatencyTest   LatencyConfig   `json:"latencyTest"`
 	Bandwidth     BandwidthConfig `json:"bandwidth"`
+}
+
+type SchedulerConfig struct {
+	Schedule string `json:"path_to_schedule"`
 }
 
 type ICMPConfig struct {
@@ -61,6 +68,10 @@ func NewConfig(filepath string) (*Config, error) {
 	config, err := load(filepath)
 	if err != nil {
 		return nil, err
+	}
+
+	if config.Scheduler.Schedule == "" {
+		config.Scheduler.Schedule = "data/schedule.json"
 	}
 
 	if config.Port == "" {

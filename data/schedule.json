@@ -1,0 +1,35 @@
+{
+  "1737641680807481507": {
+    "name": "daily-download",
+    "test_type": "download",
+    "datetime": "2025-01-23T23:00:00Z",
+    "recurring": true,
+    "interval": "daily",
+    "active": true
+  },
+  "1737641764333582872": {
+    "name": "daily-latency",
+    "test_type": "latency",
+    "datetime": "2025-01-23T14:20:00Z",
+    "recurring": false,
+    "interval": "daily",
+    "active": false
+  },
+  "1737650164040133841": {
+    "name": "bandwidth-historic-chart",
+    "chart_type": "bandwidth",
+    "recent_days": 14,
+    "datetime": "2025-01-23T23:11:00Z",
+    "recurring": true,
+    "interval": "weekly",
+    "active": true
+  },
+  "1737650197987775180": {
+    "name": "daily-bandwidth-test",
+    "test_type": "bandwidth",
+    "datetime": "2025-01-23T23:11:00Z",
+    "recurring": true,
+    "interval": "daily",
+    "active": true
+  }
+}

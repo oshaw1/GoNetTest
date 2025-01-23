@@ -37,5 +37,8 @@
             "failThreshold": 80,
             "downloadUrl":"http://ipv4.download.thinkbroadband.com/100MB.zip"
         }
+    },
+    "scheduler": {
+        "path_to_schedule" : "data/schedule.json"
     }
 }

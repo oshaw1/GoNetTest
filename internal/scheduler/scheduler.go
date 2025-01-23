@@ -1,44 +1,69 @@
 package scheduler
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"sync"
 	"time"
 )
 
-type Schedule struct {
-	ID        string    `json:"id"`
-	TestType  string    `json:"test_type"`
-	DateTime  time.Time `json:"datetime"`
-	Recurring bool      `json:"recurring"`
-	Interval  string    `json:"interval,omitempty"` // daily, weekly, monthly
-	Active    bool      `json:"active"`
+type Task struct {
+	Name       string    `json:"name"`
+	TestType   string    `json:"test_type,omitempty"`
+	ChartType  string    `json:"chart_type,omitempty"`
+	RecentDays int       `json:"recent_days,omitempty"`
+	DateTime   time.Time `json:"datetime"`
+	Recurring  bool      `json:"recurring"`
+	Interval   string    `json:"interval,omitempty"`
+	Active     bool      `json:"active"`
 }
 
 type Scheduler struct {
-	Schedules map[string]*Schedule
-	client    *http.Client
-	baseURL   string
-	Mu        sync.RWMutex
-	done      chan struct{}
+	Schedule     map[string]*Task
+	client       *http.Client
+	baseURL      string
+	Mu           sync.RWMutex
+	done         chan struct{}
+	schedulePath string
 }
 
-func NewScheduler(baseURL string) *Scheduler {
-	return &Scheduler{
-		Schedules: make(map[string]*Schedule),
-		client:    &http.Client{Timeout: 30 * time.Second},
-		baseURL:   baseURL,
-		done:      make(chan struct{}),
+func NewScheduler(baseURL string, schedulePath string) *Scheduler {
+	s := &Scheduler{
+		Schedule:     make(map[string]*Task),
+		client:       &http.Client{Timeout: 30 * time.Second},
+		baseURL:      baseURL,
+		done:         make(chan struct{}),
+		schedulePath: schedulePath,
 	}
+	return s
 }
 
 func (s *Scheduler) Start() {
+	if err := s.ImportSchedule(s.schedulePath); err != nil {
+		log.Printf("Scheduler could not import schedule due to: %s", err)
+	} else {
+		tasksJSON, err := json.MarshalIndent(s.Schedule, "", "  ")
+		if err != nil {
+			log.Printf("Error formatting tasks: %v", err)
+			return
+		}
+		log.Printf("Scheduler Successfully Loaded %d tasks from %s \n Schedule: %s ", len(s.Schedule), s.schedulePath, tasksJSON)
+	}
+
 	go s.run()
 }
 
 func (s *Scheduler) Stop() {
-	close(s.done)
+	select {
+	case <-s.done:
+		return
+	default:
+		s.ExportSchedule(s.schedulePath)
+		close(s.done)
+	}
 }
 
 func (s *Scheduler) run() {
@@ -48,36 +73,48 @@ func (s *Scheduler) run() {
 	for {
 		select {
 		case <-ticker.C:
-			s.checkAndExecuteSchedules()
+			s.checkAndExecuteSchedule()
 		case <-s.done:
 			return
 		}
 	}
 }
 
-func (s *Scheduler) checkAndExecuteSchedules() {
+func (s *Scheduler) checkAndExecuteSchedule() {
 	s.Mu.RLock()
 	defer s.Mu.RUnlock()
 
 	now := time.Now()
-	for _, schedule := range s.Schedules {
+	for _, schedule := range s.Schedule {
 		if !schedule.Active {
 			continue
 		}
 
-		if schedule.DateTime.Before(now) {
-			go s.executeTest(schedule)
+		if !schedule.DateTime.Before(now) {
+			continue
+		}
 
-			if schedule.Recurring {
-				s.updateNextRunTime(schedule)
+		if schedule.ChartType != "" {
+			if schedule.RecentDays >= 0 {
+				go s.executeHistoricChart(schedule)
 			} else {
-				schedule.Active = false
+				go s.executeChart(schedule)
 			}
 		}
+		if schedule.TestType != "" {
+			go s.executeTest(schedule)
+		}
+
+		if schedule.Recurring {
+			s.updateNextRunTime(schedule)
+		} else {
+			schedule.Active = false
+		}
+		s.ExportSchedule(s.schedulePath)
 	}
 }
 
-func (s *Scheduler) updateNextRunTime(schedule *Schedule) {
+func (s *Scheduler) updateNextRunTime(schedule *Task) {
 	switch schedule.Interval {
 	case "daily":
 		schedule.DateTime = schedule.DateTime.AddDate(0, 0, 1)
@@ -88,12 +125,47 @@ func (s *Scheduler) updateNextRunTime(schedule *Schedule) {
 	}
 }
 
-func (s *Scheduler) executeTest(schedule *Schedule) error {
+func (s *Scheduler) executeTest(schedule *Task) error {
 	url := fmt.Sprintf("%s/networktest?test=%s", s.baseURL, schedule.TestType)
 	resp, err := s.client.Get(url)
 	if err != nil {
 		return fmt.Errorf("failed to execute test: %w", err)
 	}
 	defer resp.Body.Close()
+	return nil
+}
+
+func (s *Scheduler) executeChart(schedule *Task) error {
+	currentDate := time.Now().Format("2006-01-02")
+	url := fmt.Sprintf("%s/charts/generate?test=%s&date=%s", s.baseURL, schedule.ChartType, currentDate)
+
+	resp, err := s.client.Get(url)
+	if err != nil {
+		return fmt.Errorf("failed to generate chart: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("chart generation failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+func (s *Scheduler) executeHistoricChart(schedule *Task) error {
+	url := fmt.Sprintf("%s/charts/generate-historic?test=%s&days=%d", s.baseURL, schedule.ChartType, schedule.RecentDays)
+
+	resp, err := s.client.Get(url)
+	if err != nil {
+		return fmt.Errorf("failed to generate chart: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("chart generation failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
 	return nil
 }
