@@ -124,21 +124,19 @@ func (g *PageGenerator) GenerateTestQuadrant(selectedDate, selectedType string) 
 				ChartPaths: make(map[string]string),
 			}
 			for _, file := range files {
-				timestampRegex := regexp.MustCompile(`\d{6}`)
-				match := timestampRegex.FindString(file)
-				if match != "" {
-					group.TimeGroup = match
-				}
 				if strings.HasSuffix(file, ".json") {
 					group.JsonPath = file
-					// Read JSON as string
 					content, err := os.ReadFile(file)
 					if err != nil {
 						return nil, fmt.Errorf("failed to read JSON file: %w", err)
 					}
 					group.TestResult = string(content)
 
-					// Extract timestamp using regex
+					timestampRegex := regexp.MustCompile(`\d{6}$`)
+					match := timestampRegex.FindString(file)
+					if match != "" {
+						group.TimeGroup = match
+					}
 				} else if strings.HasSuffix(file, ".html") {
 					chartType := strings.TrimSuffix(strings.Split(filepath.Base(file), "_")[3], ".html")
 					group.ChartPaths[chartType] = file
