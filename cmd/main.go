@@ -19,7 +19,7 @@ import (
 func printBanner() {
 	banner := `
 =================================================
-     goNetTest - Network Testing Made Simple
+     GoNetTest - Network Testing Made Simple
      Created by Owen Shaw
      GitHub: github.com/oshaw1
 =================================================

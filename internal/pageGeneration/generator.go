@@ -3,10 +3,10 @@ package pageGeneration
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/oshaw1/go-net-test/internal/dataManagement"
@@ -101,50 +101,63 @@ func (pg *PageGenerator) validateRequiredTemplates(templates *template.Template)
 }
 
 func (g *PageGenerator) GenerateTestQuadrant(selectedDate, selectedType string) (*TestQuadrantData, error) {
+	log.Printf("Starting GenerateTestQuadrant with selectedDate: %s, selectedType: %s", selectedDate, selectedType)
+
 	dates, err := g.repository.GetTestDirectories()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get dates: %w", err)
 	}
+
 	if selectedDate == "" && len(dates) > 0 {
 		selectedDate = dates[0]
+		log.Printf("No date selected, defaulting to latest date: %s", selectedDate)
 	}
+
 	testTypes, err := g.repository.ListTestTypesInDateDir(selectedDate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get test types: %w", err)
 	}
+	log.Printf("Retrieved %d test types for date %s", len(testTypes), selectedDate)
+
 	var testGroups []TestGroup
 	if selectedType != "" {
+		log.Printf("Processing test type: %s", selectedType)
 		fileMap, err := g.repository.MapTestFilesByTimestamp(selectedDate, selectedType)
 		if err != nil {
+			log.Printf("Failed to map test files: %v", err)
 			return nil, err
 		}
-		for timeGroup, files := range fileMap {
+		log.Printf("Found %d time groups for test type %s", len(fileMap), selectedType)
+
+		for timestamp, files := range fileMap {
 			group := TestGroup{
-				TimeGroup:  timeGroup,
+				TimeGroup:  timestamp,
 				ChartPaths: make(map[string]string),
 			}
+			log.Printf("Processing time group: %s with %d files", timestamp, len(files))
+
 			for _, file := range files {
 				if strings.HasSuffix(file, ".json") {
 					group.JsonPath = file
 					content, err := os.ReadFile(file)
 					if err != nil {
+						log.Printf("Failed to read JSON file %s: %v", file, err)
 						return nil, fmt.Errorf("failed to read JSON file: %w", err)
 					}
 					group.TestResult = string(content)
-
-					timestampRegex := regexp.MustCompile(`\d{6}$`)
-					match := timestampRegex.FindString(file)
-					if match != "" {
-						group.TimeGroup = match
-					}
+					log.Printf("Added JSON path: %s", file)
 				} else if strings.HasSuffix(file, ".html") {
 					chartType := strings.TrimSuffix(strings.Split(filepath.Base(file), "_")[3], ".html")
 					group.ChartPaths[chartType] = file
+					log.Printf("Added chart path for type %s: %s", chartType, file)
 				}
 			}
 			testGroups = append(testGroups, group)
 		}
 	}
+
+	log.Printf("Generated %d test groups", len(testGroups))
+
 	return &TestQuadrantData{
 		QuadrantData: QuadrantData{Title: "Tests"},
 		Dates:        dates,

@@ -1,6 +1,7 @@
 package charting
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
@@ -19,6 +20,31 @@ func (g *Generator) GenerateBandwidthAnalysisCharts(result *networkTesting.Bandw
 	}
 
 	return bar3dSpeed, bar3dDuration, nil
+}
+
+func (g *Generator) GenerateHistoricBandwidthAnalysisCharts(results []*networkTesting.BandwidthTestResult) (*charts.Bar3D, *charts.Bar3D, error) {
+	if results == nil {
+		return nil, nil, fmt.Errorf("function called with no results")
+	}
+
+	speedBar, err := generateBandwidthSpeedOverTimeBar(results)
+	if err != nil {
+		return nil, nil, err
+	}
+	durationBar, err := generateBandwidthDurationOverTimeBar(results)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return speedBar, durationBar, nil
+}
+
+func generateBandwidthSpeedOverTimeBar(results []*networkTesting.BandwidthTestResult) (*charts.Bar3D, error) {
+	return nil, nil
+}
+
+func generateBandwidthDurationOverTimeBar(results []*networkTesting.BandwidthTestResult) (*charts.Bar3D, error) {
+	return nil, nil
 }
 
 func generateBandwidth3DBarSpeed(result *networkTesting.BandwidthTestResult) (*charts.Bar3D, error) {

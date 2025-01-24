@@ -3,8 +3,7 @@
    <div class="sidebar">
        {{range .Dates}}
            <button hx-get="/dashboard/tests?date={{.}}" 
-                   hx-target="#test-results"
-                   hx-include="#test-selection select">
+                   hx-target="#test-selection, #test-results">
                {{.}}
            </button>
        {{end}}
@@ -21,7 +20,6 @@
 {{end}}
 
 {{define "test_selection"}}
-<div id="test-selection" class="">
     <select hx-get="/dashboard/tests?date={{.SelectedDate}}" 
             hx-trigger="change" 
             hx-target="#test-results" 
@@ -32,11 +30,9 @@
             <option value="{{.}}">{{.}}</option>
         {{end}}
     </select>
-</div>
 {{end}}
 
 {{define "test_results"}}
-<div id="test-results">
     {{if .TestGroups}}
         <div class="test-groups-accordion">
             {{range $index, $group := .TestGroups}}
@@ -55,7 +51,7 @@
                             {{end}}
                         </div>
                         <div class="data-section">
-                            <pre>{{$group.TestResult}}</pre>
+                            <pre>{{printf "%+v" $group.TestResult}}</pre>
                         </div>
                     </div>
                 </div>
@@ -71,5 +67,4 @@
             </div>
         </div>
     {{end}}
-</div>
 {{end}}

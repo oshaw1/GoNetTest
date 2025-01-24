@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -75,22 +74,6 @@ func (r *Repository) GetTestDirectories() ([]string, error) {
 
 	sort.Sort(sort.Reverse(sort.StringSlice(dates)))
 	return dates, nil
-}
-
-func (r *Repository) GetTestFilesInGroup(date, testType string) (map[string][]string, error) {
-	testPath := filepath.Join(r.baseDir, date, testType)
-	files, err := os.ReadDir(testPath)
-	if err != nil {
-		return nil, err
-	}
-
-	groups := make(map[string][]string)
-	for _, file := range files {
-		name := file.Name()
-		timeGroup := strings.Split(name, "_")[2]
-		groups[timeGroup] = append(groups[timeGroup], filepath.Join(testPath, name))
-	}
-	return groups, nil
 }
 
 func (r *Repository) ListTestTypesInDateDir(date string) ([]string, error) {

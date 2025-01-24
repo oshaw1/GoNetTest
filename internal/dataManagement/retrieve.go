@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -176,12 +177,18 @@ func (r *Repository) MapTestFilesByTimestamp(date, testType string) (map[string]
 		return nil, err
 	}
 
+	timestampRegex := regexp.MustCompile(`\d{6}`)
 	fileMap := make(map[string][]string)
+
 	for _, file := range files {
-		timeGroup := strings.Split(file.Name(), "_")[2]
-		path := filepath.Join(testPath, file.Name())
-		fileMap[timeGroup] = append(fileMap[timeGroup], path)
+		matches := timestampRegex.FindAllString(file.Name(), -1)
+		if len(matches) > 0 {
+			timestamp := matches[len(matches)-1]
+			path := filepath.Join(testPath, file.Name())
+			fileMap[timestamp] = append(fileMap[timestamp], path)
+		}
 	}
+
 	return fileMap, nil
 }
 

@@ -126,11 +126,20 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		bar, err := h.charts.GenerateHistoricLatencyAnalysisCharts(latencyResults)
 		if err != nil {
+			return fmt.Errorf("failed to generate latency chart: %w", err)
+		}
+		h.repository.SaveChart(bar, "latency", "latency_ot")
+	case "bandwidth":
+		bandwidthResult := make([]*networkTesting.BandwidthTestResult, len(results))
+		for i, r := range results {
+			bandwidthResult[i] = r.Bandwidth
+		}
+		speedBar, durationBar, err := h.charts.GenerateHistoricBandwidthAnalysisCharts(bandwidthResult)
+		if err != nil {
 			return fmt.Errorf("failed to generate download chart: %w", err)
 		}
-		h.repository.SaveChart(bar, "latency", "rtt_ot")
-	case "bandwidth":
-
+		h.repository.SaveChart(speedBar, "bandwidth", "bandwidth_speed_ot")
+		h.repository.SaveChart(durationBar, "bandwidth", "bandwidth_duration_ot")
 	default:
 		return fmt.Errorf("unsupported test type: %s", testType)
 	}

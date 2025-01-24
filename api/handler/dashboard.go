@@ -33,19 +33,15 @@ func (h *DashboardHandler) HandleTestQuadrant(w http.ResponseWriter, r *http.Req
 	date := r.URL.Query().Get("date")
 	testType := r.URL.Query().Get("type")
 
-	log.Printf("Date: %s, Type: %s", date, testType)
-
 	data, err := h.generator.GenerateTestQuadrant(date, testType)
 	if err != nil {
-		log.Printf("Error generating data: %v", err)
 		handleError(w, "Error generating test data", err, 500)
 		return
 	}
 
-	log.Printf("Test Groups: %+v", data.TestGroups)
-
 	if testType == "" {
 		h.generator.RenderTestSelection(w, data)
+		h.generator.RenderTestResults(w, data)
 	} else {
 		h.generator.RenderTestResults(w, data)
 	}
