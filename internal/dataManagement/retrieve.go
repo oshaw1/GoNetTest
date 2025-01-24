@@ -169,6 +169,22 @@ func (r *Repository) GetChart(date string, testType string) (bool, string, error
 	return r.CheckData(date, testType, ".html")
 }
 
+func (r *Repository) MapTestFilesByTimestamp(date, testType string) (map[string][]string, error) {
+	testPath := filepath.Join(r.baseDir, date, testType)
+	files, err := os.ReadDir(testPath)
+	if err != nil {
+		return nil, err
+	}
+
+	fileMap := make(map[string][]string)
+	for _, file := range files {
+		timeGroup := strings.Split(file.Name(), "_")[2]
+		path := filepath.Join(testPath, file.Name())
+		fileMap[timeGroup] = append(fileMap[timeGroup], path)
+	}
+	return fileMap, nil
+}
+
 func (r *Repository) CheckData(date, testType, fileExtension string) (bool, string, error) {
 	log.Printf("CheckData called with date: %s, testType: %s, fileExtension: %s",
 		date, testType, fileExtension)

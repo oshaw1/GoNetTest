@@ -1,7 +1,0 @@
-{{define "recentQuadrant"}}
-    <h2>Recent Tests</h2>
-    <button id="refreshButton" hx-target="#recent-quadrant" hx-swap="innerHTML" hx-get="http://localhost:7000/dashboard/recent-tests-quadrant">Refresh</button>
-    {{.ChartSection}}
-    {{.DataSection}}
-    </div>
-{{end}}

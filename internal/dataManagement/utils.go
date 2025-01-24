@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -54,4 +57,56 @@ func structToMap(value reflect.Value) map[string]interface{} {
 func isDateFolder(name string) bool {
 	_, err := time.Parse(dateFormat, name)
 	return err == nil
+}
+
+// Gets all test date directories sorted newest first
+func (r *Repository) GetTestDirectories() ([]string, error) {
+	files, err := os.ReadDir(r.baseDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read directory: %w", err)
+	}
+
+	var dates []string
+	for _, f := range files {
+		if f.IsDir() {
+			dates = append(dates, f.Name())
+		}
+	}
+
+	sort.Sort(sort.Reverse(sort.StringSlice(dates)))
+	return dates, nil
+}
+
+func (r *Repository) GetTestFilesInGroup(date, testType string) (map[string][]string, error) {
+	testPath := filepath.Join(r.baseDir, date, testType)
+	files, err := os.ReadDir(testPath)
+	if err != nil {
+		return nil, err
+	}
+
+	groups := make(map[string][]string)
+	for _, file := range files {
+		name := file.Name()
+		timeGroup := strings.Split(name, "_")[2]
+		groups[timeGroup] = append(groups[timeGroup], filepath.Join(testPath, name))
+	}
+	return groups, nil
+}
+
+func (r *Repository) ListTestTypesInDateDir(date string) ([]string, error) {
+	dateDir := filepath.Join(r.baseDir, date)
+	files, err := os.ReadDir(dateDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read directory: %w", err)
+	}
+
+	var types []string
+	for _, f := range files {
+		if f.IsDir() {
+			types = append(types, f.Name())
+		}
+	}
+
+	sort.Strings(types)
+	return types, nil
 }

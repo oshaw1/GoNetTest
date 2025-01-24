@@ -1,0 +1,75 @@
+{{define "test_quadrant"}}
+<div id="test-quadrant" class="quadrant">
+   <div class="sidebar">
+       {{range .Dates}}
+           <button hx-get="/dashboard/tests?date={{.}}" 
+                   hx-target="#test-results"
+                   hx-include="#test-selection select">
+               {{.}}
+           </button>
+       {{end}}
+   </div>
+
+   <div id="test-selection">
+       {{template "test_selection" .}}
+   </div>
+
+   <div id="test-results">
+       {{template "test_results" .}}
+   </div>
+</div>
+{{end}}
+
+{{define "test_selection"}}
+<div id="test-selection" class="">
+    <select hx-get="/dashboard/tests?date={{.SelectedDate}}" 
+            hx-trigger="change" 
+            hx-target="#test-results" 
+            hx-include="this"
+            name="type" 
+            class="">
+        {{range .TestTypes}}
+            <option value="{{.}}">{{.}}</option>
+        {{end}}
+    </select>
+</div>
+{{end}}
+
+{{define "test_results"}}
+<div id="test-results">
+    {{if .TestGroups}}
+        <div class="test-groups-accordion">
+            {{range $index, $group := .TestGroups}}
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="this.nextElementSibling.classList.toggle('active')">
+                        Test Group: {{$group.TimeGroup}}
+                    </div>
+                    <div class="accordion-content">
+                        <div class="chart-section">
+                            {{range $type, $path := $group.ChartPaths}}
+                                <div class="chart" id="chart-{{$type}}" 
+                                     hx-get="/data/{{$path}}"
+                                     hx-swap="innerHTML">
+                                    Chart Loading...
+                                </div>
+                            {{end}}
+                        </div>
+                        <div class="data-section">
+                            <pre>{{$group.TestResult}}</pre>
+                        </div>
+                    </div>
+                </div>
+            {{end}}
+        </div>
+    {{else}}
+        <div class="test-group">
+            <div class="chart-section">
+                <p>Select a date and test type to view results</p>
+            </div>
+            <div class="data-section">
+                <p>No data available</p>
+            </div>
+        </div>
+    {{end}}
+</div>
+{{end}}

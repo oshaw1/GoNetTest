@@ -1,0 +1,22 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Net Test Dashboard</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+    <script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+    <link rel="stylesheet" href="/web/static/dashboard_style.css">
+</head>
+<body>
+    <div class="dashboard">
+        {{template "test_quadrant" .TestData}}
+        {{template "generate_quadrant" .GenerateData}}
+        {{template "control_quadrant" .ControlData}}
+        {{template "scheduler_quadrant" .SchedulerData}}
+    </div>
+</body>
+</html>
+{{end}}

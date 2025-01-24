@@ -60,21 +60,17 @@ func main() {
 	networkTestHandler := handler.NewNetworkTestHandler(tester, repository)
 	chartHandler := handler.NewChartHandler(repository, conf)
 	utilHandler := &handler.UtilHandler{}
-	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.tmpl")
+	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.gohtml")
 
 	mux := middleware.NewRouteMux()
 
-	fs := http.FileServer(http.Dir("web/static"))
-
 	mux.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data/output"))))
-	mux.Handle("/web/static/", http.StripPrefix("/web/static/", fs))
+	mux.Handle("/web/static/", http.StripPrefix("/web/static/", http.FileServer(http.Dir("web/static"))))
 
 	mux.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))
 
 	mux.HandleFunc("/dashboard/", middleware.LoggingMiddleware(dashboardHandler.ServeDashboard))
-	mux.HandleFunc("/dashboard/recent-tests-quadrant", middleware.LoggingMiddleware(dashboardHandler.GetRecentQuadrant))
-	mux.HandleFunc("/dashboard/chart", middleware.LoggingMiddleware(dashboardHandler.GetChart))
-	mux.HandleFunc("/dashboard/data", middleware.LoggingMiddleware(dashboardHandler.GetData))
+	mux.HandleFunc("/dashboard/tests", middleware.LoggingMiddleware(dashboardHandler.HandleTestQuadrant))
 
 	mux.HandleFunc("/networktest", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
 	mux.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))

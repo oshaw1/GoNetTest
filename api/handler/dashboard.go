@@ -1,13 +1,8 @@
 package handler
 
 import (
-	"errors"
-	"fmt"
-	"html/template"
 	"log"
 	"net/http"
-	"path/filepath"
-	"time"
 
 	"github.com/oshaw1/go-net-test/internal/dataManagement"
 	"github.com/oshaw1/go-net-test/internal/pageGeneration"
@@ -34,100 +29,51 @@ func NewDashboardHandler(repo *dataManagement.Repository, templatePath string) *
 	}
 }
 
-func (h *DashboardHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(filepath.Join("web", "static", "dashboard.html"))
+func (h *DashboardHandler) HandleTestQuadrant(w http.ResponseWriter, r *http.Request) {
+	date := r.URL.Query().Get("date")
+	testType := r.URL.Query().Get("type")
+
+	log.Printf("Date: %s, Type: %s", date, testType)
+
+	data, err := h.generator.GenerateTestQuadrant(date, testType)
 	if err != nil {
-		handleError(w, "Error parsing dashboard template", err, 500)
+		log.Printf("Error generating data: %v", err)
+		handleError(w, "Error generating test data", err, 500)
 		return
 	}
 
-	if err := tmpl.Execute(w, nil); err != nil {
+	log.Printf("Test Groups: %+v", data.TestGroups)
+
+	if testType == "" {
+		h.generator.RenderTestSelection(w, data)
+	} else {
+		h.generator.RenderTestResults(w, data)
+	}
+}
+
+func (h *DashboardHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
+	if err := h.generator.RenderDashboard(w); err != nil {
 		handleError(w, "Error rendering dashboard", err, 500)
 	}
 }
 
-func (h *DashboardHandler) GetRecentQuadrant(w http.ResponseWriter, r *http.Request) {
-	html, err := h.generator.GenerateRecentQuadrantHTML()
+func (h *DashboardHandler) ServeTestQuadrant(w http.ResponseWriter, r *http.Request) {
+	data, err := h.generator.GenerateTestQuadrant("", "")
 	if err != nil {
-		handleError(w, "Error generating recent quadrant", err, 500)
+		handleError(w, "Error generating test quadrant", err, 500)
 		return
 	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(html))
+	h.generator.RenderTestQuadrant(w, data)
 }
 
-func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
-	dateStr := r.URL.Query().Get("date")
-	if dateStr == "" {
-		handleError(w, "Date parameter is required", errors.New("missing date parameter"), http.StatusBadRequest)
-		return
-	}
-	testStr := r.URL.Query().Get("test")
-	if testStr == "" {
-		handleError(w, "Test type parameter is required", errors.New("request missing 'test' parameter"), http.StatusBadRequest)
-		return
-	}
-
-	_, err := time.Parse("2006-01-02", dateStr)
-	if err != nil {
-		handleError(w, "Invalid date format", err, http.StatusBadRequest)
-		return
-	}
-
-	chartHtml, err := h.generator.GenerateICMPChartHTMLGivenDate(dateStr, testStr)
-	if err != nil {
-		handleError(w, "Error generating chart", err, http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(chartHtml))
+func (h *DashboardHandler) ServeGenerateQuadrant(w http.ResponseWriter, r *http.Request) {
+	// Serve generate quadrant template with data
 }
 
-func (h *DashboardHandler) GetData(w http.ResponseWriter, r *http.Request) {
-	dateStr := r.URL.Query().Get("date")
-	if dateStr == "" {
-		handleError(w, "Date parameter is required", errors.New("missing date parameter"), http.StatusBadRequest)
-		return
-	}
+func (h *DashboardHandler) ServeControlQuadrant(w http.ResponseWriter, r *http.Request) {
+	// Serve control quadrant template with data
+}
 
-	testType := r.URL.Query().Get("type")
-	if testType == "" {
-		testType = "icmp"
-	}
-
-	_, err := time.Parse("2006-01-02", dateStr)
-	if err != nil {
-		handleError(w, "Invalid date format", err, http.StatusBadRequest)
-		return
-	}
-
-	result, err := h.repository.GetTestData(dateStr, testType)
-	if err != nil {
-		handleError(w, "Error occured fetching data", err, http.StatusInternalServerError)
-		return
-	}
-
-	var dataHTML template.HTML
-	switch testType {
-	case "icmp":
-		dataHTML, err = h.generator.GenerateICMPDataHTML(result.ICMP)
-	case "download":
-		dataHTML, err = h.generator.GenerateSpeedDataHTML(result.Download)
-	case "upload":
-		dataHTML, err = h.generator.GenerateSpeedDataHTML(result.Upload)
-	default:
-		handleError(w, "Invalid test type", fmt.Errorf("unsupported test type: %s", testType), http.StatusBadRequest)
-		return
-	}
-
-	if err != nil {
-		log.Printf("Error generating %s data: %v", testType, err)
-	} else {
-		log.Printf("Generated %s data HTML: %s", testType, dataHTML)
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(dataHTML))
+func (h *DashboardHandler) ServeSchedulerQuadrant(w http.ResponseWriter, r *http.Request) {
+	// Serve scheduler quadrant template with data
 }
