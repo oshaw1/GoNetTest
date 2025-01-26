@@ -39,5 +39,14 @@
     "recurring": true,
     "interval": "daily",
     "active": true
+  },
+  "1737901484855784905": {
+    "name": "icmptest",
+    "test_type": "icmp",
+    "datetime": "2025-01-26T14:25:00Z",
+    "recurring": false,
+    "interval": "daily",
+    "active": false,
+    "last_ran": "2025-01-26T14:25:42.996382112Z"
   }
 }

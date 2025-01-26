@@ -70,6 +70,37 @@ func TestUpdateNextRunTime(t *testing.T) {
 	}
 }
 
+func TestLastRanTracking(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	schedulePath := "schedules.json"
+	defer os.RemoveAll(schedulePath)
+
+	scheduler := NewScheduler(server.URL, schedulePath)
+	pastTime := time.Now().Add(-1 * time.Hour)
+
+	task := Task{
+		Name:      "test_task",
+		TestType:  "jitter",
+		DateTime:  pastTime,
+		Recurring: true,
+		Interval:  "daily",
+		Active:    true,
+	}
+
+	scheduler.Schedule[task.Name] = &task
+	assert.Nil(t, scheduler.Schedule[task.Name].LastRan)
+
+	scheduler.checkAndExecuteSchedule()
+	time.Sleep(100 * time.Millisecond)
+
+	assert.NotNil(t, scheduler.Schedule[task.Name].LastRan)
+	assert.True(t, scheduler.Schedule[task.Name].LastRan.After(pastTime))
+}
+
 func TestExecuteTest(t *testing.T) {
 	tests := []struct {
 		name        string

@@ -3,14 +3,8 @@ package pageGeneration
 import (
 	"fmt"
 	"html/template"
-	"log"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/oshaw1/go-net-test/internal/dataManagement"
-	"github.com/oshaw1/go-net-test/internal/scheduler"
 )
 
 type PageGenerator struct {
@@ -26,71 +20,24 @@ var requiredTemplates = []string{
 	"test_quadrant.gohtml",
 }
 
-type DashboardData struct {
-	TestData      *TestQuadrantData
-	GenerateData  *GenerateQuadrantData
-	ControlData   *ControlQuadrantData
-	SchedulerData *SchedulerQuadrantData
-}
-
-type QuadrantData struct {
-	Title string
-	Error error
-}
-
-type TestQuadrantData struct {
-	QuadrantData
-	Dates        []string
-	TestTypes    []string
-	SelectedDate string
-	SelectedType string
-	TestGroups   []TestGroup
-}
-
-type GenerateQuadrantData struct {
-	QuadrantData
-}
-
-type ControlQuadrantData struct {
-	QuadrantData
-}
-
-type SchedulerQuadrantData struct {
-	QuadrantData
-	Schedule map[string]*scheduler.Task
-}
-
-type TestGroup struct {
-	TimeGroup  string // HRMINSECOND
-	JsonPath   string
-	TestResult interface{}       // From networkTesting.TestResult based on type
-	ChartPaths map[string]string // "speed" -> path.html
-}
-
-// NewPageGenerator creates a new instance of PageGenerator with validation
 func NewPageGenerator(templatePath string, repo *dataManagement.Repository) (*PageGenerator, error) {
 	if repo == nil {
 		return nil, fmt.Errorf("repository cannot be nil")
 	}
-
 	templates, err := template.ParseGlob(templatePath)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing templates: %w", err)
 	}
-
 	pg := &PageGenerator{
 		templates:  templates,
 		repository: repo,
 	}
-
 	if err := pg.validateRequiredTemplates(templates); err != nil {
 		return nil, err
 	}
-
 	return pg, nil
 }
 
-// validateRequiredTemplates ensures all required templates are present
 func (pg *PageGenerator) validateRequiredTemplates(templates *template.Template) error {
 	for _, name := range requiredTemplates {
 		if templates.Lookup(name) == nil {
@@ -98,133 +45,4 @@ func (pg *PageGenerator) validateRequiredTemplates(templates *template.Template)
 		}
 	}
 	return nil
-}
-
-func (g *PageGenerator) GenerateTestQuadrant(selectedDate, selectedType string) (*TestQuadrantData, error) {
-	log.Printf("Starting GenerateTestQuadrant with selectedDate: %s, selectedType: %s", selectedDate, selectedType)
-
-	dates, err := g.repository.GetTestDirectories()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get dates: %w", err)
-	}
-
-	if selectedDate == "" && len(dates) > 0 {
-		selectedDate = dates[0]
-		log.Printf("No date selected, defaulting to latest date: %s", selectedDate)
-	}
-
-	testTypes, err := g.repository.ListTestTypesInDateDir(selectedDate)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get test types: %w", err)
-	}
-	log.Printf("Retrieved %d test types for date %s", len(testTypes), selectedDate)
-
-	var testGroups []TestGroup
-	if selectedType != "" {
-		log.Printf("Processing test type: %s", selectedType)
-		fileMap, err := g.repository.MapTestFilesByTimestamp(selectedDate, selectedType)
-		if err != nil {
-			log.Printf("Failed to map test files: %v", err)
-			return nil, err
-		}
-		log.Printf("Found %d time groups for test type %s", len(fileMap), selectedType)
-
-		for timestamp, files := range fileMap {
-			group := TestGroup{
-				TimeGroup:  timestamp,
-				ChartPaths: make(map[string]string),
-			}
-			log.Printf("Processing time group: %s with %d files", timestamp, len(files))
-
-			for _, file := range files {
-				if strings.HasSuffix(file, ".json") {
-					group.JsonPath = file
-					content, err := os.ReadFile(file)
-					if err != nil {
-						log.Printf("Failed to read JSON file %s: %v", file, err)
-						return nil, fmt.Errorf("failed to read JSON file: %w", err)
-					}
-					group.TestResult = string(content)
-					log.Printf("Added JSON path: %s", file)
-				} else if strings.HasSuffix(file, ".html") {
-					chartType := strings.TrimSuffix(strings.Split(filepath.Base(file), "_")[3], ".html")
-					group.ChartPaths[chartType] = file
-					log.Printf("Added chart path for type %s: %s", chartType, file)
-				}
-			}
-			testGroups = append(testGroups, group)
-		}
-	}
-
-	log.Printf("Generated %d test groups", len(testGroups))
-
-	return &TestQuadrantData{
-		QuadrantData: QuadrantData{Title: "Tests"},
-		Dates:        dates,
-		TestTypes:    testTypes,
-		SelectedDate: selectedDate,
-		SelectedType: selectedType,
-		TestGroups:   testGroups,
-	}, nil
-}
-
-func (pg *PageGenerator) RenderDashboard(w http.ResponseWriter) error {
-	testData, err := pg.GenerateTestQuadrant("", "")
-	if err != nil {
-		return err
-	}
-
-	generateData, err := pg.GenerateHistoryQuadrant()
-	if err != nil {
-		return err
-	}
-
-	controlData, err := pg.GenerateControlQuadrant()
-	if err != nil {
-		return err
-	}
-
-	schedulerData, err := pg.GenerateSchedulerQuadrant()
-	if err != nil {
-		return err
-	}
-
-	data := &DashboardData{
-		TestData:      testData,
-		GenerateData:  generateData,
-		ControlData:   controlData,
-		SchedulerData: schedulerData,
-	}
-
-	return pg.templates.ExecuteTemplate(w, "base", data)
-}
-
-func (pg *PageGenerator) RenderTestQuadrant(w http.ResponseWriter, data *TestQuadrantData) error {
-	return pg.templates.ExecuteTemplate(w, "test_quadrant", data)
-}
-
-func (pg *PageGenerator) RenderTestSelection(w http.ResponseWriter, data *TestQuadrantData) error {
-	return pg.templates.ExecuteTemplate(w, "test_selection", data)
-}
-
-func (pg *PageGenerator) RenderTestResults(w http.ResponseWriter, data *TestQuadrantData) error {
-	return pg.templates.ExecuteTemplate(w, "test_results", data)
-}
-
-func (pg *PageGenerator) GenerateHistoryQuadrant() (*GenerateQuadrantData, error) {
-	return &GenerateQuadrantData{
-		QuadrantData: QuadrantData{Title: "History"},
-	}, nil
-}
-
-func (pg *PageGenerator) GenerateControlQuadrant() (*ControlQuadrantData, error) {
-	return &ControlQuadrantData{
-		QuadrantData: QuadrantData{Title: "Control"},
-	}, nil
-}
-
-func (pg *PageGenerator) GenerateSchedulerQuadrant() (*SchedulerQuadrantData, error) {
-	return &SchedulerQuadrantData{
-		QuadrantData: QuadrantData{Title: "Scheduler"},
-	}, nil
 }

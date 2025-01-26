@@ -11,14 +11,15 @@ import (
 )
 
 type Task struct {
-	Name       string    `json:"name"`
-	TestType   string    `json:"test_type,omitempty"`
-	ChartType  string    `json:"chart_type,omitempty"`
-	RecentDays int       `json:"recent_days,omitempty"`
-	DateTime   time.Time `json:"datetime"`
-	Recurring  bool      `json:"recurring"`
-	Interval   string    `json:"interval,omitempty"`
-	Active     bool      `json:"active"`
+	Name       string     `json:"name"`
+	TestType   string     `json:"test_type,omitempty"`
+	ChartType  string     `json:"chart_type,omitempty"`
+	RecentDays int        `json:"recent_days,omitempty"`
+	DateTime   time.Time  `json:"datetime"`
+	Recurring  bool       `json:"recurring"`
+	Interval   string     `json:"interval,omitempty"`
+	Active     bool       `json:"active"`
+	LastRan    *time.Time `json:"last_ran,omitempty"`
 }
 
 type Scheduler struct {
@@ -84,15 +85,15 @@ func (s *Scheduler) checkAndExecuteSchedule() {
 	s.Mu.RLock()
 	defer s.Mu.RUnlock()
 
-	now := time.Now()
+	now := time.Now().Format(time.RFC3339)
+	nowTime, _ := time.Parse(time.RFC3339, now)
+
 	for _, schedule := range s.Schedule {
-		if !schedule.Active {
+		if !schedule.Active || !schedule.DateTime.Before(nowTime) {
 			continue
 		}
 
-		if !schedule.DateTime.Before(now) {
-			continue
-		}
+		schedule.LastRan = &nowTime
 
 		if schedule.ChartType != "" {
 			if schedule.RecentDays >= 0 {
