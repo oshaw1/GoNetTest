@@ -3,7 +3,8 @@
    <div class="sidebar">
        {{range .Dates}}
            <button hx-get="/dashboard/tests?date={{.}}" 
-                   hx-target="#test-selection, #test-results">
+                   hx-target="#test-results"
+                   hx-include="#test-selection select">
                {{.}}
            </button>
        {{end}}
