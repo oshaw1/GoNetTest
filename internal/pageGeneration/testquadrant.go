@@ -97,9 +97,13 @@ func processJsonFile(filename string, group *TestGroup) error {
 }
 
 func processHtmlFile(filename string, group *TestGroup) error {
-	chartType := strings.TrimSuffix(strings.Split(filepath.Base(filename), "_")[3], ".html")
+	parts := strings.Split(filepath.Base(filename), "_")
+	chartIndex := 3 // Skip first 3 parts
+	if len(parts) <= chartIndex {
+		return fmt.Errorf("invalid HTML filename format: %s", filename)
+	}
+	chartType := parts[chartIndex]
 	group.ChartPaths[chartType] = filename
-	log.Printf("%s: Added chart path for type %s: %s", logPrefix, chartType, filename)
 	return nil
 }
 

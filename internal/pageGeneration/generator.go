@@ -7,9 +7,15 @@ import (
 	"github.com/oshaw1/go-net-test/internal/dataManagement"
 )
 
+type Repository interface {
+	GetTestDirectories() ([]string, error)
+	ListTestTypesInDateDir(date string) ([]string, error)
+	MapTestFilesByTimestamp(date, testType string) (map[string][]string, error)
+}
+
 type PageGenerator struct {
+	repository Repository
 	templates  *template.Template
-	repository *dataManagement.Repository
 }
 
 var requiredTemplates = []string{
