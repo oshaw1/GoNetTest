@@ -31,19 +31,41 @@ To change any test/ui parameters such as Download/Upload urls or max requests pl
 
 Once the application is started you can access the dashboard via `{youripaddress/localhost}:7000/dashboard`
 
-Alternatively you can view all accessable endpoints within the startup logs and view the spec within api/openapi.yaml
+Alternatively you can view all accessable endpoints within the startup logs and view the specs within api/
 
 ### To Build -
 - Bash/Go build tools:
 ```
-go build cmd/main.go
-./main.exe
+go build -o GoNetTest cmd/main.go
 ```
 - Docker:
 ```
-docker build -t go-net-test-app . ;
-docker run -p 7000:7000 go-net-test-app
+docker build -t go-net-test . ;
+docker run -p 7000:7000 go-net-test
 ```
+**NOTE**: GoNetTest must be started from its root directory.
+
+### Linux
+
+For linux systems it is recomended to run GoNetTest as a system service as it is intended to run in the background. To do this first build the binary then configure gonettest.service to point to it.  
+An example service configuration is:
+```
+[Unit]
+Description=GoNetTest Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/code/projects/GoNetTest
+ExecStart=/home/code/projects/GoNetTest/GoNetTest
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+Once this service has been configured it can be started with : ```sudo systemctl start gonettest```  
+
 ## Low Level System Architecture Diagram -
 ![Network Testing Webapp System ARCH](https://github.com/user-attachments/assets/d4563d27-be0a-4aad-b78e-80f2e9b19865)
 
