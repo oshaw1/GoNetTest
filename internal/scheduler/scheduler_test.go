@@ -3,6 +3,7 @@ package scheduler
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -11,7 +12,8 @@ import (
 
 func TestNewScheduler(t *testing.T) {
 	baseURL := "http://test.com"
-	schedulePath := "data/schedules.json"
+	schedulePath := "schedules.json"
+	defer os.RemoveAll(schedulePath)
 	scheduler := NewScheduler(baseURL, schedulePath)
 
 	assert.NotNil(t, scheduler)
@@ -22,7 +24,8 @@ func TestNewScheduler(t *testing.T) {
 }
 
 func TestUpdateNextRunTime(t *testing.T) {
-	schedulePath := "data/schedules.json"
+	schedulePath := "schedules.json"
+	defer os.RemoveAll(schedulePath)
 	scheduler := NewScheduler("http://test.com", schedulePath)
 	now := time.Now()
 
@@ -92,7 +95,8 @@ func TestExecuteTest(t *testing.T) {
 			}))
 			defer server.Close()
 
-			schedulePath := "example/schedule.json"
+			schedulePath := "schedule.json"
+			defer os.RemoveAll(schedulePath)
 			scheduler := NewScheduler(server.URL, schedulePath)
 			task := &Task{
 				TestType: "jitter",
@@ -114,7 +118,9 @@ func TestCheckAndExecuteSchedules(t *testing.T) {
 	}))
 	defer server.Close()
 
-	schedulePath := "data/schedules.json"
+	schedulePath := "schedules.json"
+	defer os.RemoveAll(schedulePath)
+
 	scheduler := NewScheduler(server.URL, schedulePath)
 	pastTime := time.Now().Add(-1 * time.Hour)
 	futureTime := time.Now().Add(1 * time.Hour)

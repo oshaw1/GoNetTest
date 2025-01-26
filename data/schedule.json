@@ -31,5 +31,13 @@
     "recurring": true,
     "interval": "daily",
     "active": true
+  },
+  "1737887492319118087": {
+    "name": "daily-upload",
+    "test_type": "upload",
+    "datetime": "2025-01-26T23:15:00Z",
+    "recurring": true,
+    "interval": "daily",
+    "active": true
   }
 }

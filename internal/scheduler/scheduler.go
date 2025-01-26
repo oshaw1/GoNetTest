@@ -115,13 +115,18 @@ func (s *Scheduler) checkAndExecuteSchedule() {
 }
 
 func (s *Scheduler) updateNextRunTime(schedule *Task) {
-	switch schedule.Interval {
-	case "daily":
-		schedule.DateTime = schedule.DateTime.AddDate(0, 0, 1)
-	case "weekly":
-		schedule.DateTime = schedule.DateTime.AddDate(0, 0, 7)
-	case "monthly":
-		schedule.DateTime = schedule.DateTime.AddDate(0, 1, 0)
+	now := time.Now()
+
+	// First bring the date up to current if it's in the past
+	for schedule.DateTime.Before(now) {
+		switch schedule.Interval {
+		case "daily":
+			schedule.DateTime = schedule.DateTime.AddDate(0, 0, 1)
+		case "weekly":
+			schedule.DateTime = schedule.DateTime.AddDate(0, 0, 7)
+		case "monthly":
+			schedule.DateTime = schedule.DateTime.AddDate(0, 1, 0)
+		}
 	}
 }
 

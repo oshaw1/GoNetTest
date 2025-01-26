@@ -9,9 +9,9 @@ import (
 )
 
 func TestExportImportSchedules(t *testing.T) {
-	s := NewScheduler("http://test.com", "test_schedules.json")
-	testFile := "test_schedules.json"
-	defer os.Remove(testFile)
+	schedulePath := "schedules.json"
+	defer os.RemoveAll(schedulePath)
+	s := NewScheduler("http://test.com", schedulePath)
 
 	testTime := time.Now().UTC() // Use UTC for consistent timezone
 	schedule := &Task{
@@ -25,11 +25,11 @@ func TestExportImportSchedules(t *testing.T) {
 
 	s.Schedule[schedule.Name] = schedule
 
-	err := s.ExportSchedule(testFile)
+	err := s.ExportSchedule(schedulePath)
 	assert.NoError(t, err)
 
 	s2 := NewScheduler("http://test.com", "test_schedules.json")
-	err = s2.ImportSchedule(testFile)
+	err = s2.ImportSchedule(schedulePath)
 	assert.NoError(t, err)
 
 	assert.Equal(t, s.Schedule["test123"], s2.Schedule["test123"])
@@ -43,13 +43,17 @@ func TestExportSchedulesError(t *testing.T) {
 }
 
 func TestImportSchedulesError(t *testing.T) {
-	s := NewScheduler("http://test.com", "test_schedules.json")
+	schedulePath := "schedules.json"
+	defer os.RemoveAll(schedulePath)
+	s := NewScheduler("http://test.com", schedulePath)
 	err := s.ImportSchedule("nonexistent.json")
 	assert.Error(t, err)
 }
 
 func TestDeleteSchedule(t *testing.T) {
-	s := NewScheduler("http://test.com", "test_schedules.json")
+	schedulePath := "schedules.json"
+	defer os.RemoveAll(schedulePath)
+	s := NewScheduler("http://test.com", schedulePath)
 	schedule := &Task{
 		Name:      "test123",
 		TestType:  "jitter",
@@ -70,7 +74,9 @@ func TestDeleteSchedule(t *testing.T) {
 }
 
 func TestEditTask(t *testing.T) {
-	s := NewScheduler("http://test.com", "test_schedules.json")
+	schedulePath := "schedules.json"
+	defer os.RemoveAll(schedulePath)
+	s := NewScheduler("http://test.com", schedulePath)
 
 	originalTask := &Task{
 		Name:      "test123",
