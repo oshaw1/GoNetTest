@@ -5,6 +5,8 @@ import (
 	"html/template"
 
 	"github.com/oshaw1/go-net-test/internal/dataManagement"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Repository interface {
@@ -16,6 +18,7 @@ type Repository interface {
 type PageGenerator struct {
 	repository Repository
 	templates  *template.Template
+	caser      cases.Caser
 }
 
 var requiredTemplates = []string{
@@ -37,6 +40,7 @@ func NewPageGenerator(templatePath string, repo *dataManagement.Repository) (*Pa
 	pg := &PageGenerator{
 		templates:  templates,
 		repository: repo,
+		caser:      cases.Title(language.English),
 	}
 	if err := pg.validateRequiredTemplates(templates); err != nil {
 		return nil, err

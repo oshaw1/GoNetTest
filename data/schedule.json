@@ -2,10 +2,11 @@
   "1737641680807481507": {
     "name": "daily-download",
     "test_type": "download",
-    "datetime": "2025-01-26T23:00:00Z",
+    "datetime": "2025-01-27T23:00:00Z",
     "recurring": true,
     "interval": "daily",
-    "active": true
+    "active": true,
+    "last_ran": "2025-01-26T23:00:02Z"
   },
   "1737641764333582872": {
     "name": "daily-latency",
@@ -27,18 +28,20 @@
   "1737650197987775180": {
     "name": "daily-bandwidth-test",
     "test_type": "bandwidth",
-    "datetime": "2025-01-26T23:11:00Z",
+    "datetime": "2025-01-27T23:11:00Z",
     "recurring": true,
     "interval": "daily",
-    "active": true
+    "active": true,
+    "last_ran": "2025-01-26T23:11:02Z"
   },
   "1737887492319118087": {
     "name": "daily-upload",
     "test_type": "upload",
-    "datetime": "2025-01-26T23:15:00Z",
+    "datetime": "2025-01-27T23:15:00Z",
     "recurring": true,
     "interval": "daily",
-    "active": true
+    "active": true,
+    "last_ran": "2025-01-26T23:15:02Z"
   },
   "1737901484855784905": {
     "name": "icmptest",
