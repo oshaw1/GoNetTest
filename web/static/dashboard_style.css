@@ -236,3 +236,204 @@ body, html {
 .accordion-content::-webkit-scrollbar-track {
     background-color: #f8f9fa;
 }
+/* Scheduler styles */
+.scheduler-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.scheduler-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #495057;
+}
+
+.add-task-btn {
+    padding: 0.5rem 1rem;
+    background-color: #228be6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.add-task-btn:hover {
+    background-color: #1c7ed6;
+}
+
+.schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.task-card {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: transform 0.2s;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.task-name {
+    font-weight: 500;
+    color: #212529;
+}
+
+.task-id {
+    color: #868e96;
+    font-size: 0.85rem;
+}
+
+.task-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.task-type {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.test-badge {
+    background-color: #e3fafc;
+    color: #0c8599;
+}
+
+.chart-badge {
+    background-color: #fff4e6;
+    color: #e8590c;
+}
+
+.task-schedule {
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background-color: white;
+    margin: 10% auto;
+    padding: 2rem;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.radio-group {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="datetime-local"],
+.form-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background-color: white;
+}
+
+.form-group select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23495057' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.form-actions button {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.form-actions button[type="submit"] {
+    background-color: #228be6;
+    color: white;
+    border: none;
+}
+
+.form-actions button[type="button"] {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #495057;
+}

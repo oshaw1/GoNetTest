@@ -26,6 +26,6 @@ go.work.sum
 
 # data
 data/output/*
-data/schedule.json
+data/*.json
 
 GoNetTest
