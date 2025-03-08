@@ -2,6 +2,7 @@ package charting
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -88,6 +89,10 @@ func generateDownloadSpeedBar(result *networkTesting.AverageSpeedTestResult) (*c
 }
 
 func generateDownloadOverTimeBar(results []*networkTesting.AverageSpeedTestResult) (*charts.Bar, error) {
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Timestamp.Before(results[j].Timestamp)
+	})
+
 	bar := charts.NewBar()
 	line := charts.NewLine()
 
