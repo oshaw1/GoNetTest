@@ -6,14 +6,16 @@ import (
 
 	"github.com/oshaw1/go-net-test/internal/dataManagement"
 	"github.com/oshaw1/go-net-test/internal/pageGeneration"
+	"github.com/oshaw1/go-net-test/internal/scheduler"
 )
 
 type DashboardHandler struct {
 	repository *dataManagement.Repository
 	generator  *pageGeneration.PageGenerator
+	scheduler  *scheduler.Scheduler
 }
 
-func NewDashboardHandler(repo *dataManagement.Repository, templatePath string) *DashboardHandler {
+func NewDashboardHandler(repo *dataManagement.Repository, templatePath string, scheduler *scheduler.Scheduler) *DashboardHandler {
 	if repo == nil {
 		log.Fatalf("Repository cannot be nil")
 	}
@@ -26,10 +28,11 @@ func NewDashboardHandler(repo *dataManagement.Repository, templatePath string) *
 	return &DashboardHandler{
 		repository: repo,
 		generator:  generator,
+		scheduler:  scheduler,
 	}
 }
 
-func (h *DashboardHandler) HandleTestQuadrant(w http.ResponseWriter, r *http.Request) {
+func (h *DashboardHandler) ServeTestQuadrant(w http.ResponseWriter, r *http.Request) {
 	date := r.URL.Query().Get("date")
 	testType := r.URL.Query().Get("type")
 
@@ -47,19 +50,29 @@ func (h *DashboardHandler) HandleTestQuadrant(w http.ResponseWriter, r *http.Req
 	}
 }
 
+func (h *DashboardHandler) ServeSchedule(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	schedulerData, err := h.generator.GenerateSchedulerQuadrant()
+	if err != nil {
+		handleError(w, "Error generating scheduler data", err, 500)
+		return
+	}
+
+	h.scheduler.Mu.RLock()
+	schedulerData.Schedule = h.scheduler.Schedule
+	h.scheduler.Mu.RUnlock()
+
+	h.generator.RenderSchedule(w, schedulerData)
+}
+
 func (h *DashboardHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
 	if err := h.generator.RenderDashboard(w); err != nil {
 		handleError(w, "Error rendering dashboard", err, 500)
 	}
-}
-
-func (h *DashboardHandler) ServeTestQuadrant(w http.ResponseWriter, r *http.Request) {
-	data, err := h.generator.GenerateTestQuadrant("", "")
-	if err != nil {
-		handleError(w, "Error generating test quadrant", err, 500)
-		return
-	}
-	h.generator.RenderTestQuadrant(w, data)
 }
 
 func (h *DashboardHandler) ServeGenerateQuadrant(w http.ResponseWriter, r *http.Request) {
@@ -68,8 +81,4 @@ func (h *DashboardHandler) ServeGenerateQuadrant(w http.ResponseWriter, r *http.
 
 func (h *DashboardHandler) ServeControlQuadrant(w http.ResponseWriter, r *http.Request) {
 	// Serve control quadrant template with data
-}
-
-func (h *DashboardHandler) ServeSchedulerQuadrant(w http.ResponseWriter, r *http.Request) {
-	// Serve scheduler quadrant template with data
 }

@@ -1,0 +1,44 @@
+{{define "schedule.gohtml"}}
+{{range $id, $task := .Schedule}}
+    <div class="schedule-item" id="task-{{$id}}">
+        <div class="task-header">
+            <h3>{{$task.Name}}</h3>
+            <span class="task-id">ID: {{$id}}</span>
+        </div>
+        <div class="task-content">
+            {{if $task.TestType}}
+                <div class="task-type">Test Type: {{$task.TestType}}</div>
+            {{else if $task.ChartType}}
+                <div class="task-type">Chart Type: {{$task.ChartType}}</div>
+                {{if $task.RecentDays}}
+                    <div class="task-days">Recent Days: {{$task.RecentDays}}</div>
+                {{end}}
+            {{end}}
+            
+            <div class="task-schedule">
+                <div>Datetime: {{$task.DateTime.Format "2006-01-02 15:04:05"}}</div>
+                <div>Recurring: {{if $task.Recurring}}Yes ({{$task.Interval}}){{else}}No{{end}}</div>
+                <div>Active: {{if $task.Active}}Yes{{else}}No{{end}}</div>
+                {{if $task.LastRan}}
+                    <div>Last Ran: {{$task.LastRan.Format "2006-01-02 15:04:05"}}</div>
+                {{end}}
+            </div>
+        </div>
+        <div class="task-actions">
+            <button 
+                class="edit-btn" 
+                onclick="editTask('{{$id}}')">
+                Edit
+            </button>
+            <button 
+                class="delete-btn" 
+                hx-delete="/schedule/delete/{{$id}}"
+                hx-confirm="Are you sure you want to delete this task?"
+                hx-trigger="click"
+                hx-target="#schedule-list">
+                Delete
+            </button>
+        </div>
+    </div>
+{{end}}
+{{end}}

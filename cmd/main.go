@@ -60,7 +60,7 @@ func main() {
 	networkTestHandler := handler.NewNetworkTestHandler(tester, repository)
 	chartHandler := handler.NewChartHandler(repository, conf)
 	utilHandler := &handler.UtilHandler{}
-	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.gohtml")
+	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.gohtml", scheduler)
 
 	mux := middleware.NewRouteMux()
 
@@ -70,7 +70,8 @@ func main() {
 	mux.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))
 
 	mux.HandleFunc("/dashboard/", middleware.LoggingMiddleware(dashboardHandler.ServeDashboard))
-	mux.HandleFunc("/dashboard/tests", middleware.LoggingMiddleware(dashboardHandler.HandleTestQuadrant))
+	mux.HandleFunc("/dashboard/tests", middleware.LoggingMiddleware(dashboardHandler.ServeTestQuadrant))
+	mux.HandleFunc("/dashboard/schedule", middleware.LoggingMiddleware(dashboardHandler.ServeSchedule))
 
 	mux.HandleFunc("/networktest", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
 	mux.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))

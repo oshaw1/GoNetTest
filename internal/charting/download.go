@@ -2,7 +2,6 @@ package charting
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -11,7 +10,7 @@ import (
 
 func (g *Generator) GenerateDownloadAnalysisCharts(result *networkTesting.AverageSpeedTestResult) (*charts.Bar, error) {
 	if result == nil {
-		return nil, fmt.Errorf("function called with no results")
+		return nil, fmt.Errorf("GenerateDownloadAnalysisCharts called with no results")
 	}
 
 	bar, err := generateDownloadSpeedBar(result)
@@ -24,7 +23,7 @@ func (g *Generator) GenerateDownloadAnalysisCharts(result *networkTesting.Averag
 
 func (g *Generator) GenerateHistoricDownloadAnalysisCharts(results []*networkTesting.AverageSpeedTestResult) (*charts.Bar, error) {
 	if results == nil {
-		return nil, fmt.Errorf("function called with no results")
+		return nil, fmt.Errorf("GenerateHistoricDownloadAnalysisCharts called with no results")
 	}
 
 	barOverTime, err := generateDownloadOverTimeBar(results)
@@ -38,7 +37,6 @@ func (g *Generator) GenerateHistoricDownloadAnalysisCharts(results []*networkTes
 func generateDownloadSpeedBar(result *networkTesting.AverageSpeedTestResult) (*charts.Bar, error) {
 	bar := charts.NewBar()
 
-	// Prepare data
 	var xAxis []string
 	var speeds []float64
 
@@ -89,10 +87,6 @@ func generateDownloadSpeedBar(result *networkTesting.AverageSpeedTestResult) (*c
 }
 
 func generateDownloadOverTimeBar(results []*networkTesting.AverageSpeedTestResult) (*charts.Bar, error) {
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Timestamp.Before(results[j].Timestamp)
-	})
-
 	bar := charts.NewBar()
 	line := charts.NewLine()
 
