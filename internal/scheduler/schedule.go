@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func (s *Scheduler) ExportSchedule(filename string) error {
@@ -65,34 +66,35 @@ func (s *Scheduler) DeleteSchedule(id string) error {
 }
 
 func (s *Scheduler) EditTask(taskID string, updatedTask Task) (*Task, error) {
-	s.Mu.Lock()
-
 	task, exists := s.Schedule[taskID]
 	if !exists {
+		fmt.Printf("DEBUG: Task %s not found\n", taskID)
 		return nil, fmt.Errorf("task with ID %s not found", taskID)
 	}
 
-	if updatedTask.Name != "" {
-		task.Name = updatedTask.Name
-	}
-	if updatedTask.ChartType != "" {
-		task.ChartType = updatedTask.ChartType
-	}
-	if updatedTask.RecentDays != 0 {
-		task.RecentDays = updatedTask.RecentDays
-	}
+	task.Name = updatedTask.Name
+	task.Recurring = updatedTask.Recurring
+	task.Active = updatedTask.Active
+	task.Interval = updatedTask.Interval
+
 	if updatedTask.TestType != "" {
 		task.TestType = updatedTask.TestType
+		task.ChartType = ""
+		task.RecentDays = 0
+	} else if updatedTask.ChartType != "" {
+		task.ChartType = updatedTask.ChartType
+		task.TestType = ""
+		task.RecentDays = updatedTask.RecentDays
 	}
+
 	if !updatedTask.DateTime.IsZero() {
-		task.DateTime = updatedTask.DateTime
+		year, month, day := updatedTask.DateTime.Date()
+		hour, min, sec := updatedTask.DateTime.Clock()
+		task.DateTime = time.Date(year, month, day, hour, min, sec, 0, time.Local)
 	}
-	task.Recurring = updatedTask.Recurring
-	if updatedTask.Interval != "" {
-		task.Interval = updatedTask.Interval
-	}
-	task.Active = updatedTask.Active
-	s.Mu.Unlock()
+
+	fmt.Printf("DEBUG: Final task: %+v\n", task)
+
 	if err := s.ExportSchedule(s.schedulePath); err != nil {
 		return nil, fmt.Errorf("failed to export schedule: %w", err)
 	}

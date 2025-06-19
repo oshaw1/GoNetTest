@@ -30,7 +30,7 @@ func (h *SchedulerHandler) HandleCreateSchedule(w http.ResponseWriter, r *http.R
 	}
 
 	id := fmt.Sprintf("%d", time.Now().UnixNano())
-	task.Active = true
+	task.CreatedOn = time.Now()
 
 	h.scheduler.Mu.Lock()
 	h.scheduler.Schedule[id] = &task

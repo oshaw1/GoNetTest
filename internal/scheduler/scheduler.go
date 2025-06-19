@@ -20,6 +20,7 @@ type Task struct {
 	Interval   string     `json:"interval,omitempty"`
 	Active     bool       `json:"active"`
 	LastRan    *time.Time `json:"last_ran,omitempty"`
+	CreatedOn  time.Time  `json:"created_on"`
 }
 
 type Scheduler struct {

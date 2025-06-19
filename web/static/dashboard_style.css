@@ -4,15 +4,35 @@ body, html {
     font-family: Arial, sans-serif;
     height: 100%;
 }
+
 .dashboard {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    grid-template-rows: 1fr 1fr;   /* Two equal rows */
     gap: 1rem;
     height: 100vh;
     padding: 1rem;
     box-sizing: border-box;
     background-color: #f0f0f0;
+    grid-template-areas: 
+        "test control"
+        "test scheduler";
+}
+
+/* Assign grid areas to specific quadrants */
+#test-quadrant {
+    grid-area: test;
+    display: flex; /* Ensure flex is maintained for internal layout */
+}
+
+#control-quadrant {
+    grid-area: control;
+    display: flex; /* Ensure flex is maintained for internal layout */
+}
+
+#scheduler-quadrant {
+    grid-area: scheduler;
+    display: flex; /* Ensure flex is maintained for internal layout */
 }
 
 .tests-container {
@@ -42,6 +62,19 @@ body, html {
 
 /* Base quadrant layout */
 .quadrant {
+    display: flex;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Individual quadrant layouts */
+.test-quadrant-layout,
+.control-quadrant-layout,
+.scheduler-quadrant-layout {
     display: flex;
     background-color: white;
     border-radius: 8px;
@@ -155,7 +188,9 @@ body, html {
 
 .accordion-content {
     height: calc(100% - 4rem);
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* Carousel Navigation Buttons */
@@ -203,6 +238,27 @@ body, html {
     margin-bottom: 1rem;
 }
 
+.chart-section {
+    flex-shrink: 0; /* Prevent chart from shrinking */
+}
+
+.data-section {
+    flex: 1; /* Take remaining space */
+    overflow: hidden; /* Prevent overflow on container */
+    display: flex;
+    flex-direction: column;
+}
+
+.data-section pre {
+    margin: 0;
+    padding: 1rem;
+    font-size: 0.85rem;
+    overflow-y: auto; /* Only vertical scroll for the pre element */
+    white-space: pre-wrap;
+    word-break: break-word;
+    flex: 1; /* Take all available space in data-section */
+}
+
 .chart {
     min-height: 200px;
     display: flex;
@@ -211,31 +267,26 @@ body, html {
     padding: 1rem;
 }
 
-.data-section pre {
-    margin: 0;
-    padding: 1rem;
-    font-size: 0.85rem;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-/* Scrollbar styling */
+/* Update scrollbar styling to include data-section pre */
 .sidebar::-webkit-scrollbar,
-.accordion-content::-webkit-scrollbar {
+.accordion-content::-webkit-scrollbar,
+.data-section pre::-webkit-scrollbar {
     width: 6px;
 }
 
 .sidebar::-webkit-scrollbar-thumb,
-.accordion-content::-webkit-scrollbar-thumb {
+.accordion-content::-webkit-scrollbar-thumb,
+.data-section pre::-webkit-scrollbar-thumb {
     background-color: #dee2e6;
     border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-track,
-.accordion-content::-webkit-scrollbar-track {
+.accordion-content::-webkit-scrollbar-track,
+.data-section pre::-webkit-scrollbar-track {
     background-color: #f8f9fa;
 }
+
 /* Scheduler styles */
 .scheduler-header {
     display: flex;
@@ -266,22 +317,22 @@ body, html {
     background-color: #1c7ed6;
 }
 
-.schedule-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+.schedule-list {
+    flex: 1;
+    overflow-y: auto;
     padding: 1rem;
 }
 
-.task-card {
+.schedule-item {
     background-color: white;
     border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 1rem;
+    margin-bottom: 1rem;
     transition: transform 0.2s;
 }
 
-.task-card:hover {
+.schedule-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
@@ -293,8 +344,9 @@ body, html {
     margin-bottom: 0.75rem;
 }
 
-.task-name {
-    font-weight: 500;
+.task-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
     color: #212529;
 }
 
@@ -303,10 +355,8 @@ body, html {
     font-size: 0.85rem;
 }
 
-.task-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+.task-content {
+    margin-bottom: 1rem;
 }
 
 .task-type {
@@ -316,23 +366,88 @@ body, html {
     font-size: 0.75rem;
     font-weight: 500;
     text-transform: uppercase;
-}
-
-.test-badge {
     background-color: #e3fafc;
     color: #0c8599;
-}
-
-.chart-badge {
-    background-color: #fff4e6;
-    color: #e8590c;
+    margin-bottom: 0.5rem;
 }
 
 .task-schedule {
     font-size: 0.85rem;
     color: #495057;
+    line-height: 1.4;
 }
 
+.task-schedule div {
+    margin-bottom: 0.25rem;
+}
+
+.task-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.task-actions button {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    border: none;
+}
+
+.edit-btn {
+    background-color: #228be6;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #fa5252;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #1c7ed6;
+}
+
+.delete-btn:hover {
+    background-color: #e03131;
+}
+
+.no-tasks {
+    text-align: center;
+    padding: 2rem;
+    color: #868e96;
+}
+
+.htmx-indicator {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 10;
+    text-align: center;
+    padding-top: 40px;
+}
+
+.htmx-request .htmx-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+}
+
+.htmx-indicator p {
+    margin-top: 10px;
+    color: #4a6cf7;
+    font-weight: 500;
+}
 
 /* Modal styles */
 .modal {

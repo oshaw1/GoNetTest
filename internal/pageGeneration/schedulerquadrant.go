@@ -1,6 +1,7 @@
 package pageGeneration
 
 import (
+	"bytes"
 	"net/http"
 
 	"github.com/oshaw1/go-net-test/internal/scheduler"
@@ -19,5 +20,12 @@ func (pg *PageGenerator) GenerateSchedulerQuadrant() (*SchedulerQuadrantData, er
 }
 
 func (pg *PageGenerator) RenderSchedule(w http.ResponseWriter, data *SchedulerQuadrantData) error {
-	return pg.templates.ExecuteTemplate(w, "schedule.gohtml", data)
+	var buf bytes.Buffer
+	err := pg.templates.ExecuteTemplate(&buf, "schedule", data)
+	if err != nil {
+		return err
+	}
+
+	w.Write(buf.Bytes())
+	return nil
 }

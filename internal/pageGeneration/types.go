@@ -7,7 +7,6 @@ type QuadrantData struct {
 
 type DashboardData struct {
 	TestData      *TestQuadrantData
-	GenerateData  *GenerateQuadrantData
 	ControlData   *ControlQuadrantData
 	SchedulerData *SchedulerQuadrantData
 }

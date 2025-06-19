@@ -36,8 +36,13 @@
 {{define "test_results"}}
     {{if .TestGroups}}
         <div class="test-groups-accordion">
-            <button class="carousel-nav prev" onclick="moveCarousel(-1)">←</button>
-            <button class="carousel-nav next" onclick="moveCarousel(1)">→</button>
+            {{$groupCount := len .TestGroups}}
+            <button class="carousel-nav prev" 
+                    onclick="moveCarousel(-1)"
+                    {{if le $groupCount 1}}disabled{{end}}>←</button>
+            <button class="carousel-nav next" 
+                    onclick="moveCarousel(1)"
+                    {{if le $groupCount 1}}disabled{{end}}>→</button>
             <div class="carousel-container">
                 {{range $index, $group := .TestGroups}}
                     <div class="accordion-item">

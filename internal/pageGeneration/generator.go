@@ -24,7 +24,6 @@ type PageGenerator struct {
 var requiredTemplates = []string{
 	"base.gohtml",
 	"control_quadrant.gohtml",
-	"generate_quadrant.gohtml",
 	"scheduler_quadrant.gohtml",
 	"test_quadrant.gohtml",
 }

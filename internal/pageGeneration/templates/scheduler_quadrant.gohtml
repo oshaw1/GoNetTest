@@ -9,115 +9,125 @@
                 Add Task
             </button>
         </div>
+
+        <div id="schedule-loader" class="htmx-indicator">
+            <img src="/web/static/images/hamster.gif" alt="Loading..." class="loading-spinner">
+            <p>Loading schedule data...</p>
+        </div>
         
         <div 
             id="schedule-list"
             class="schedule-list"
             hx-get="/dashboard/schedule"
-            hx-trigger="load, taskChanged from:body">
+            hx-trigger="load, taskChanged from:body"
+            hx-indicator="#schedule-loader">
             <!-- Schedule items will be loaded here via HTMX -->
         </div>
     </div>
 
     <!-- Modal for adding/editing tasks -->
-    <div id="task-modal" class="modal">
-        <div class="modal-content">
-            <h3>Add New Task</h3>
-            <form 
-                hx-post="/schedule/create"
-                hx-target="#schedule-list"
-                hx-trigger="submit"
-                class="task-form"
-                hx-ext="json-enc">
-                <div class="form-group">
-                    <label for="name">Task Name</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
+<!-- Modal for adding/editing tasks -->
+<div id="task-modal" class="modal">
+    <div class="modal-content">
+        <h3>Add New Task</h3>
+        <form 
+            hx-post="/schedule/create"
+            hx-target="#schedule-list"
+            hx-trigger="submit"
+            class="task-form"
+            hx-ext="json-enc">
+            
+            <div class="form-group">
+                <label for="name">Task Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
 
-                <div class="form-group">
-                    <label>Task Type</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="task_type" value="test" checked>
-                            Test
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="task_type" value="chart">
-                            Chart
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-group test-field">
-                    <label for="test_type">Test Type</label>
-                    <select id="test_type" name="test_type">
-                        <option value="icmp">ICMP</option>
-                        <option value="download">Download</option>
-                        <option value="upload">Upload</option>
-                        <option value="route">Route</option>
-                        <option value="latency">Latency</option>
-                        <option value="bandwidth">Bandwidth</option>
-                    </select>
-                </div>
-
-                <div class="form-group chart-field" style="display: none;">
-                    <label for="chart_type">Chart Type</label>
-                    <select id="chart_type" name="chart_type">
-                        <option value="icmp">ICMP</option>
-                        <option value="download">Download</option>
-                        <option value="upload">Upload</option>
-                        <option value="route">Route</option>
-                        <option value="latency">Latency</option>
-                        <option value="bandwidth">Bandwidth</option>
-                    </select>
-                </div>
-
-                <div class="form-group chart-field" style="display: none;">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="historic" name="historic">
-                        Historic
+            <div class="form-group">
+                <label>Task Type</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="task_type" value="test" checked>
+                        Test
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="task_type" value="chart">
+                        Chart
                     </label>
                 </div>
+            </div>
 
-                <div class="form-group recent-days-field" style="display: none;">
-                    <label for="recent_days">Recent Days</label>
-                    <input type="number" id="recent_days" name="recent_days">
-                </div>
+            <div class="form-group test-field">
+                <label for="test_type">Test Type</label>
+                <select id="test_type" name="test_type">
+                    <option value="">Select test type</option>
+                    <option value="icmp">ICMP</option>
+                    <option value="download">Download</option>
+                    <option value="upload">Upload</option>
+                    <option value="route">Route</option>
+                    <option value="latency">Latency</option>
+                    <option value="bandwidth">Bandwidth</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label for="datetime">Date & Time</label>
-                    <input type="datetime-local" id="datetime" name="datetime" required>
-                </div>
+            <div class="form-group chart-field" style="display: none;">
+                <label for="chart_type">Chart Type</label>
+                <select id="chart_type" name="chart_type">
+                    <option value="">Select chart type</option>
+                    <option value="icmp">ICMP</option>
+                    <option value="download">Download</option>
+                    <option value="upload">Upload</option>
+                    <option value="route">Route</option>
+                    <option value="latency">Latency</option>
+                    <option value="bandwidth">Bandwidth</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="recurring" name="recurring">
-                        Recurring
-                    </label>
-                </div>
+            <div class="form-group chart-field" style="display: none;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="historic" name="historic">
+                    Historic
+                </label>
+            </div>
 
-                <div class="form-group" id="interval-group" style="display: none;">
-                    <label for="interval">Interval</label>
-                    <select id="interval" name="interval">
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                    </select>
-                </div>
+            <div class="form-group recent-days-field" style="display: none;">
+                <label for="recent_days">Recent Days</label>
+                <input type="number" id="recent_days" name="recent_days">
+            </div>
 
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="active" name="active" checked>
-                        Active
-                    </label>
-                </div>
+            <div class="form-group">
+                <label for="datetime">Date & Time</label>
+                <input type="datetime-local" id="datetime" name="datetime" required>
+            </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="submit-btn">Save Task</button>
-                    <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
-                </div>
-            </form>
-        </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="recurring" name="recurring">
+                    Recurring
+                </label>
+            </div>
+
+            <div class="form-group" id="interval-group" style="display: none;">
+                <label for="interval">Interval</label>
+                <select id="interval" name="interval">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="active" name="active" checked>
+                    Active
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">Save Task</button>
+                <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
     </div>
+</div>
 </div>
 {{end}}

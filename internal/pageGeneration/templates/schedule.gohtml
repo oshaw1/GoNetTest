@@ -1,6 +1,16 @@
-{{define "schedule.gohtml"}}
+{{define "schedule"}}
 {{range $id, $task := .Schedule}}
-    <div class="schedule-item" id="task-{{$id}}">
+    <div class="schedule-item" id="task-{{$id}}"
+         data-task-id="{{$id}}"
+         data-task-name="{{$task.Name}}"
+         data-test-type="{{$task.TestType}}"
+         data-chart-type="{{$task.ChartType}}"
+         data-recent-days="{{$task.RecentDays}}"
+         data-datetime="{{$task.DateTime.Format "2006-01-02T15:04"}}"
+         data-recurring="{{$task.Recurring}}"
+         data-interval="{{$task.Interval}}"
+         data-active="{{$task.Active}}">
+        
         <div class="task-header">
             <h3>{{$task.Name}}</h3>
             <span class="task-id">ID: {{$id}}</span>
@@ -19,6 +29,7 @@
                 <div>Datetime: {{$task.DateTime.Format "2006-01-02 15:04:05"}}</div>
                 <div>Recurring: {{if $task.Recurring}}Yes ({{$task.Interval}}){{else}}No{{end}}</div>
                 <div>Active: {{if $task.Active}}Yes{{else}}No{{end}}</div>
+                <div>Created On: {{$task.CreatedOn.Format "2006-01-02 15:04:05"}}</div>
                 {{if $task.LastRan}}
                     <div>Last Ran: {{$task.LastRan.Format "2006-01-02 15:04:05"}}</div>
                 {{end}}
@@ -32,10 +43,11 @@
             </button>
             <button 
                 class="delete-btn" 
-                hx-delete="/schedule/delete/{{$id}}"
+                hx-delete="/schedule/delete?id={{$id}}"
                 hx-confirm="Are you sure you want to delete this task?"
                 hx-trigger="click"
-                hx-target="#schedule-list">
+                hx-swap="none"
+                hx-on="htmx:afterRequest: htmx.trigger(document.body, 'taskChanged')">
                 Delete
             </button>
         </div>

@@ -7,10 +7,6 @@ func (pg *PageGenerator) RenderDashboard(w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
-	generateData, err := pg.GenerateHistoryQuadrant()
-	if err != nil {
-		return err
-	}
 	controlData, err := pg.GenerateControlQuadrant()
 	if err != nil {
 		return err
@@ -21,7 +17,6 @@ func (pg *PageGenerator) RenderDashboard(w http.ResponseWriter) error {
 	}
 	data := &DashboardData{
 		TestData:      testData,
-		GenerateData:  generateData,
 		ControlData:   controlData,
 		SchedulerData: schedulerData,
 	}

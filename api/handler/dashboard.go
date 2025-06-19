@@ -44,10 +44,8 @@ func (h *DashboardHandler) ServeTestQuadrant(w http.ResponseWriter, r *http.Requ
 
 	if testType == "" {
 		h.generator.RenderTestSelection(w, data)
-		h.generator.RenderTestResults(w, data)
-	} else {
-		h.generator.RenderTestResults(w, data)
 	}
+	h.generator.RenderTestResults(w, data)
 }
 
 func (h *DashboardHandler) ServeSchedule(w http.ResponseWriter, r *http.Request) {
@@ -62,21 +60,19 @@ func (h *DashboardHandler) ServeSchedule(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.scheduler.Mu.RLock()
-	schedulerData.Schedule = h.scheduler.Schedule
-	h.scheduler.Mu.RUnlock()
+	if h.scheduler != nil {
+		h.scheduler.Mu.RLock()
+		schedulerData.Schedule = h.scheduler.Schedule
+		h.scheduler.Mu.RUnlock()
 
-	h.generator.RenderSchedule(w, schedulerData)
+		h.generator.RenderSchedule(w, schedulerData)
+	}
 }
 
 func (h *DashboardHandler) ServeDashboard(w http.ResponseWriter, r *http.Request) {
 	if err := h.generator.RenderDashboard(w); err != nil {
 		handleError(w, "Error rendering dashboard", err, 500)
 	}
-}
-
-func (h *DashboardHandler) ServeGenerateQuadrant(w http.ResponseWriter, r *http.Request) {
-	// Serve generate quadrant template with data
 }
 
 func (h *DashboardHandler) ServeControlQuadrant(w http.ResponseWriter, r *http.Request) {
