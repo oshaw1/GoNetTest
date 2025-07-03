@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -33,7 +32,6 @@ func (h *ChartHandler) GenerateChart(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "missing test type parameter: 'test'", nil, http.StatusBadRequest)
 		return
 	}
-
 	date := r.URL.Query().Get("date")
 	if date == "" {
 		handleError(w, "missing date parameter", nil, http.StatusBadRequest)
@@ -44,18 +42,20 @@ func (h *ChartHandler) GenerateChart(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "error retrieving data", err, http.StatusInternalServerError)
 		return
 	}
-
 	if result == nil {
 		handleError(w, "nil data returned", err, http.StatusInternalServerError)
 		return
 	}
 
-	go func() {
-		if err := h.generateAndSaveCharts(result, testType); err != nil {
-			log.Printf("Chart generation failed: %v", err)
-			handleError(w, "Chart generation failed", err, http.StatusInternalServerError)
-		}
-	}()
+	chartPath, err := h.generateAndSaveCharts(result, testType)
+	if err != nil {
+		handleError(w, "Chart generation failed", err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(chartPath))
 }
 
 func (h *ChartHandler) GenerateHistoricChart(w http.ResponseWriter, r *http.Request) {
@@ -79,13 +79,19 @@ func (h *ChartHandler) GenerateHistoricChart(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = h.generateAndSaveHistoricCharts(results, testType)
+	chartPath, err := h.generateAndSaveHistoricCharts(results, testType)
 	if err != nil {
 		handleError(w, "error while generating charts", err, http.StatusInternalServerError)
+		return
 	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(chartPath))
 }
 
-func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.TestResult, testType string) error {
+func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.TestResult, testType string) (string, error) {
+	chartPath := ""
 	switch testType {
 	case "icmp":
 
@@ -96,9 +102,9 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		bar, err := h.charts.GenerateHistoricDownloadAnalysisCharts(downloadResults)
 		if err != nil {
-			return fmt.Errorf("failed to generate download chart: %w", err)
+			return "", fmt.Errorf("failed to generate download chart: %w", err)
 		}
-		h.repository.SaveChart(bar, "download", "speed_ot")
+		chartPath, _ = h.repository.SaveChart(bar, "download", "speed_ot")
 	case "upload":
 		uploadResults := make([]*networkTesting.AverageSpeedTestResult, len(results))
 		for i, r := range results {
@@ -106,9 +112,9 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		bar, err := h.charts.GenerateHistoricUploadAnalysisCharts(uploadResults)
 		if err != nil {
-			return fmt.Errorf("failed to generate upload chart: %w", err)
+			return "", fmt.Errorf("failed to generate upload chart: %w", err)
 		}
-		h.repository.SaveChart(bar, "upload", "speed_ot")
+		chartPath, _ = h.repository.SaveChart(bar, "upload", "speed_ot")
 	case "route":
 		result := make([]*networkTesting.RouteTestResult, len(results))
 		for i, r := range results {
@@ -116,9 +122,9 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		barline, err := h.charts.GenerateHistoricRouteAnalysisCharts(result)
 		if err != nil {
-			return fmt.Errorf("failed to generate upload chart: %w", err)
+			return "", fmt.Errorf("failed to generate upload chart: %w", err)
 		}
-		h.repository.SaveChart(barline, "route", "rtt_ot")
+		chartPath, _ = h.repository.SaveChart(barline, "route", "rtt_ot")
 	case "latency":
 		latencyResults := make([]*networkTesting.LatencyTestResult, len(results))
 		for i, r := range results {
@@ -126,9 +132,9 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		bar, err := h.charts.GenerateHistoricLatencyAnalysisCharts(latencyResults)
 		if err != nil {
-			return fmt.Errorf("failed to generate latency chart: %w", err)
+			return "", fmt.Errorf("failed to generate latency chart: %w", err)
 		}
-		h.repository.SaveChart(bar, "latency", "latency_ot")
+		chartPath, _ = h.repository.SaveChart(bar, "latency", "latency_ot")
 	case "bandwidth":
 		bandwidthResult := make([]*networkTesting.BandwidthTestResult, len(results))
 		for i, r := range results {
@@ -136,72 +142,81 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		speedBar, durationBar, err := h.charts.GenerateHistoricBandwidthAnalysisCharts(bandwidthResult)
 		if err != nil {
-			return fmt.Errorf("failed to generate download chart: %w", err)
+			return "", fmt.Errorf("failed to generate download chart: %w", err)
 		}
-		h.repository.SaveChart(speedBar, "bandwidth", "bandwidth_speed_ot")
-		h.repository.SaveChart(durationBar, "bandwidth", "bandwidth_duration_ot")
+		chartPath, _ = h.repository.SaveChart(speedBar, "bandwidth", "bandwidth_speed_ot")
+		chartPath2, _ := h.repository.SaveChart(durationBar, "bandwidth", "bandwidth_duration_ot")
+		chartPath = chartPath + chartPath2
 	default:
-		return fmt.Errorf("unsupported test type: %s", testType)
+		return "", fmt.Errorf("unsupported test type: %s", testType)
 	}
-	return nil
+	return chartPath, nil
 }
 
-func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, testType string) error {
+func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, testType string) (string, error) {
+	chartPath := ""
 	switch testType {
 	case "icmp":
 		pieChart, err := h.charts.GenerateICMPAnalysisCharts(result.ICMP)
 		if err != nil {
-			return fmt.Errorf("failed to generate ICMP chart: %w", err)
+			return "", fmt.Errorf("failed to generate ICMP chart: %w", err)
 		}
-		if _, err := h.repository.SaveChart(pieChart, "icmp", "distribution"); err != nil {
-			log.Printf("Failed to save ICMP chart: %v", err)
+		chartPath, err = h.repository.SaveChart(pieChart, "icmp", "distribution")
+		if err != nil {
+			return "", fmt.Errorf("failed to save ICMP chart: %w", err)
 		}
 	case "download":
 		bar, err := h.charts.GenerateDownloadAnalysisCharts(result.Download)
 		if err != nil {
-			return fmt.Errorf("failed to generate download chart: %w", err)
+			return "", fmt.Errorf("failed to generate download chart: %w", err)
 		}
-		if _, err := h.repository.SaveChart(bar, "download", "speed"); err != nil {
-			log.Printf("Failed to save download chart: %v", err)
+		chartPath, err = h.repository.SaveChart(bar, "download", "speed")
+		if err != nil {
+			return "", fmt.Errorf("failed to save download chart: %w", err)
 		}
 	case "upload":
 		bar, err := h.charts.GenerateUploadAnalysisCharts(result.Upload)
 		if err != nil {
-			return fmt.Errorf("failed to generate upload chart: %w", err)
+			return "", fmt.Errorf("failed to generate upload chart: %w", err)
 		}
-		if _, err := h.repository.SaveChart(bar, "upload", "speed"); err != nil {
-			log.Printf("Failed to save upload chart: %v", err)
+		chartPath, err = h.repository.SaveChart(bar, "upload", "speed")
+		if err != nil {
+			return "", fmt.Errorf("failed to save upload chart: %w", err)
 		}
 	case "route":
 		lineChart, err := h.charts.GenerateRouteAnalysisCharts(result.Route)
 		if err != nil {
-			return fmt.Errorf("failed to generate route chart: %w", err)
+			return "", fmt.Errorf("failed to generate route chart: %w", err)
 		}
-		if _, err := h.repository.SaveChart(lineChart, "route", "path"); err != nil {
-			log.Printf("Failed to save route chart: %v", err)
+		chartPath, err = h.repository.SaveChart(lineChart, "route", "path")
+		if err != nil {
+			return "", fmt.Errorf("failed to save route chart: %w", err)
 		}
 	case "latency":
 		lineChart, err := h.charts.GenerateLatencyAnalysisCharts(result.Latency)
 		if err != nil {
-			return fmt.Errorf("failed to generate latency chart: %w", err)
+			return "", fmt.Errorf("failed to generate latency chart: %w", err)
 		}
-		if _, err := h.repository.SaveChart(lineChart, "latency", "path"); err != nil {
-			log.Printf("Failed to save latency chart: %v", err)
+		chartPath, err = h.repository.SaveChart(lineChart, "latency", "path")
+		if err != nil {
+			return "", fmt.Errorf("failed to save latency chart: %w", err)
 		}
 	case "bandwidth":
 		bar3dSpeed, bar3dDuration, err := h.charts.GenerateBandwidthAnalysisCharts(result.Bandwidth)
 		if err != nil {
-			return fmt.Errorf("failed to generate bandwidth charts: %w", err)
+			return "", fmt.Errorf("failed to generate bandwidth charts: %w", err)
 		}
-		if _, err := h.repository.SaveChart(bar3dSpeed, "bandwidth", "speed"); err != nil {
-			log.Printf("Failed to save bandwidth speed chart: %v", err)
+		chartPath, err = h.repository.SaveChart(bar3dSpeed, "bandwidth", "speed")
+		if err != nil {
+			return "", fmt.Errorf("failed to save bandwidth speed chart: %w", err)
 		}
-		if _, err := h.repository.SaveChart(bar3dDuration, "bandwidth", "duration"); err != nil {
-			log.Printf("Failed to save bandwidth duration chart: %v", err)
+		chartPath2, err := h.repository.SaveChart(bar3dDuration, "bandwidth", "duration")
+		if err != nil {
+			return "", fmt.Errorf("failed to save bandwidth duration chart: %w", err)
 		}
-
+		chartPath = chartPath + " " + chartPath2
 	default:
-		return fmt.Errorf("unsupported test type: %s", testType)
+		return "", fmt.Errorf("unsupported test type: %s", testType)
 	}
-	return nil
+	return chartPath, nil
 }

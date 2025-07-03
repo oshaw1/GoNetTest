@@ -64,7 +64,7 @@ func main() {
 
 	mux := middleware.NewRouteMux()
 
-	mux.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data/output"))))
+	mux.Handle("/data/output/", http.StripPrefix("/data/output/", http.FileServer(http.Dir("data/output"))))
 	mux.Handle("/web/static/", http.StripPrefix("/web/static/", http.FileServer(http.Dir("web/static"))))
 
 	mux.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))

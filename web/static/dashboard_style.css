@@ -190,7 +190,7 @@ body, html {
     height: calc(100% - 4rem);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 /* Carousel Navigation Buttons */
@@ -229,22 +229,28 @@ body, html {
     cursor: not-allowed;
 }
 
-/* Chart and data sections */
-.chart-section,
-.data-section {
-    background-color: white;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
-    margin-bottom: 1rem;
+.chart {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
 }
 
 .chart-section {
+        background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
     flex-shrink: 0; /* Prevent chart from shrinking */
 }
 
 .data-section {
-    flex: 1; /* Take remaining space */
-    overflow: hidden; /* Prevent overflow on container */
+        background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    min-height: 30rem; /* Only if you want a minimum */
+    flex: 1;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -257,14 +263,6 @@ body, html {
     white-space: pre-wrap;
     word-break: break-word;
     flex: 1; /* Take all available space in data-section */
-}
-
-.chart {
-    min-height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
 }
 
 /* Update scrollbar styling to include data-section pre */
@@ -426,6 +424,7 @@ body, html {
     width: 100%;
     height: 100%;
     background-color: rgba(255, 255, 255, 0.7);
+    gap: 2.5rem;
     z-index: 10;
     text-align: center;
     padding-top: 40px;
@@ -439,13 +438,15 @@ body, html {
 }
 
 .loading-spinner {
+    scale: 4;
     width: 50px;
     height: 50px;
+    margin-bottom: 0.2rem;
 }
 
 .htmx-indicator p {
     margin-top: 10px;
-    color: #4a6cf7;
+    color: #0b0c0f;
     font-weight: 500;
 }
 
@@ -551,4 +552,458 @@ body, html {
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     color: #495057;
+}
+
+/* ===== CONTROL QUADRANT STYLES ===== */
+
+/* Control quadrant layout - split into left and right */
+.control-main {
+    display: flex;
+    height: calc(100% - 80px); /* Account for header */
+    margin-top: 0.25rem;
+    gap: 1rem;
+}
+
+.control-left {
+    flex: 0 0 50%; /* Don't grow, don't shrink, fixed at 50% */
+    min-width: 400px; /* Minimum width to prevent squashing */
+    margin-left: 0.5rem;
+    overflow-y: auto;
+}
+
+.control-right {
+    flex: 1; /* Takes remaining space */
+    min-width: 0; /* Allow shrinking if needed */
+    margin-right: 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Control section styling */
+.control-section {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.control-section h3 {
+    margin: 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 1.1rem;
+    color: #495057;
+}
+
+/* Disabled state for control sections during HTMX requests */
+.control-section.htmx-request {
+    opacity: 0.4;
+    pointer-events: none;
+    background-color: #f1f3f5;
+    cursor: not-allowed;
+    transition: all 0.2s ease;
+}
+
+.control-section.htmx-request * {
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.control-section.htmx-request button {
+    background-color: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+.control-section.htmx-request select {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Results display structure */
+.results-display {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    background-color: white;
+    max-height: calc(100% - 2rem);
+    min-height: 0;
+}
+
+.results-container {
+    position: relative;
+    height: 100%;
+}
+
+#quick-test-results {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 100%;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    line-height: 1.4;
+}
+
+/* HTMX Indicators in results section */
+#results-loader {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.95);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+#results-loader.htmx-request {
+    display: flex;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 1rem;
+}
+
+.day-chart-controls {
+    margin-left: 0.5rem;
+}
+#results-loader p {
+    margin: 0;
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Chart type toggle buttons */
+.chart-type-toggle {
+    display: flex;
+    gap: 0;
+    margin-top: 0.5rem;
+    margin-left: 1rem;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+    width: fit-content;
+}
+
+.chart-type-btn {
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #495057;
+    transition: all 0.2s ease;
+    border-right: 1px solid #e9ecef;
+}
+
+.chart-type-btn:last-child {
+    border-right: none;
+}
+
+.chart-type-btn:hover {
+    background-color: #e9ecef;
+}
+
+.chart-type-btn.active {
+    background-color: #228be6;
+    color: white;
+}
+
+.chart-type-btn.active:hover {
+    background-color: #1c7ed6;
+}
+
+/* Controls styling - matching existing patterns */
+.test-controls,
+.chart-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 1rem;
+}
+
+.test-controls select,
+.chart-controls select,
+.chart-controls input {
+    padding: 0.75rem;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #495057;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.test-controls select:focus,
+.chart-controls select:focus,
+.chart-controls input:focus {
+    outline: none;
+    border-color: #228be6;
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.1);
+}
+
+.chart-controls input[type="date"] {
+    background-color: white;
+    cursor: pointer;
+}
+
+.chart-controls input[type="number"] {
+    width: 80px;
+}
+
+.chart-controls label {
+    font-size: 0.9rem;
+    color: #495057;
+    margin-left: 0.25rem;
+}
+
+/* Buttons - matching existing patterns */
+.btn {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background-color: #228be6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1c7ed6;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: #495057;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #343a40;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background-color: #51cf66;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #40c057;
+    transform: translateY(-1px);
+}
+
+/* Results section styling */
+.results-section {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.results-section h3 {
+    margin: 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 1.1rem;
+    color: #495057;
+}
+
+.results-display {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    background-color: white;
+    max-height: calc(100% - 2rem); /* Account for padding */
+    min-height: 0; /* Allow shrinking */
+}
+
+#quick-test-results {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 100%;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    line-height: 1.4;
+}
+
+.no-results {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+}
+
+.no-results p {
+    color: #868e96;
+    font-style: italic;
+    margin: 0;
+}
+
+.results-container {
+    margin-top: 1rem;
+    min-height: 50px;
+}
+
+.test-result,
+.chart-result {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 0.75rem 0;
+}
+
+.test-result h5,
+.chart-result h5 {
+    margin: 0 0 0.75rem 0;
+    color: #495057;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.test-result pre {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    border: 1px solid #e9ecef;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Scrollbar styling for results and pre elements - matching existing patterns */
+.results-display::-webkit-scrollbar,
+.test-result pre::-webkit-scrollbar {
+    width: 6px;
+}
+
+.results-display::-webkit-scrollbar-thumb,
+.test-result pre::-webkit-scrollbar-thumb {
+    background-color: #dee2e6;
+    border-radius: 3px;
+}
+
+.results-display::-webkit-scrollbar-track,
+.test-result pre::-webkit-scrollbar-track {
+    background-color: #f8f9fa;
+}
+
+.completion-timestamp {
+    font-size: 0.85rem;
+    color: #868e96;
+    text-align: right;
+    margin-top: 0.75rem;
+    font-style: italic;
+}
+
+/* Error styling - matching existing patterns */
+.error {
+    background-color: #ffe0e1;
+    border: 1px solid #ffc9cb;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #c92a2a;
+    margin: 1rem 0;
+}
+
+.error p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .control-main {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .control-left {
+        flex: none;
+        min-width: unset; /* Remove min-width on mobile */
+        margin-left: 0.5rem;
+    }
+    
+    .control-right {
+        flex: none;
+        height: 300px; /* Fixed height on mobile */
+        margin-right: 0.5rem;
+    }
+    
+    .test-controls,
+    .chart-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .test-controls select,
+    .chart-controls select,
+    .chart-controls input {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .chart-controls {
+        gap: 0.5rem;
+    }
+    
+    .chart-controls label {
+        margin-left: 0;
+        margin-top: 0.25rem;
+    }
+    
+    .chart-type-toggle {
+        width: 100%;
+    }
+    
+    .chart-type-btn {
+        flex: 1;
+    }
 }
