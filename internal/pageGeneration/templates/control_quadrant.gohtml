@@ -1,164 +1,203 @@
 {{define "control_quadrant"}}
 <div id="control-quadrant" class="quadrant">
-    <div class="content-area">
-        <div class="scheduler-header">
-            <h2>Control Panel</h2>
-        </div>
-        
-        <div class="control-main" id="control-main-container">
-            <!-- Loading indicator for the entire control area -->
-            <div class="htmx-indicator main-loader">
-                <img src="/web/static/images/hamster.gif" alt="Loading..." class="loading-spinner">
-                <p>Processing request...</p>
-            </div>
-            
-            <!-- Left side - Controls -->
-            <div class="control-left">
-                <!-- Network Test Section -->
-                <div class="control-section" id="network-test-section">
-                    <h3>Network Tests</h3>
-                    <div class="test-controls">
-                        <select id="test-type" name="test">
-                            <option value="icmp">ICMP Test</option>
-                            <option value="download">Download Test</option>
-                            <option value="upload">Upload Test</option>
-                            <option value="route">Route Test</option>
-                            <option value="latency">Latency Test</option>
-                            <option value="bandwidth">Bandwidth Test</option>
-                        </select>
-                        <button 
-                            hx-get="/networktest" 
-                            hx-include="#test-type"
-                            hx-target="#quick-test-results"
-                            hx-indicator="#control-main-container"
-                            hx-trigger="click"
-                            class="btn btn-primary">
-                            Run Test
-                        </button>
-                    </div>
-                </div>
-                <!-- Chart Generation Section -->
-                <div class="control-section" id="chart-generation-section">
-                    <h3>Chart Generation</h3>
-                    
-                    <div class="chart-type-toggle">
-                        <button class="chart-type-btn active" data-type="day">Day</button>
-                        <button class="chart-type-btn" data-type="historic">Historic</button>
-                    </div>
-                    
-                    <!-- Day Chart Controls -->
-                    <div id="day-chart-controls" class="chart-controls">
-                        <form hx-get="/charts/generate" hx-indicator="#control-main-container" hx-target="#quick-test-results">
-                            <select id="chart-test-type" name="test">
-                                <option value="icmp">ICMP</option>
-                                <option value="download">Download</option>
-                                <option value="upload">Upload</option>
-                                <option value="route">Route</option>
-                                <option value="latency">Latency</option>
-                                <option value="bandwidth">Bandwidth</option>
-                            </select>
-                            <input type="date" id="chart-date" name="date" value="{{.CurrentDate}}" />
-                            <button type="submit" class="btn btn-secondary">
-                                Generate Chart
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <!-- Historic Chart Controls -->
-                    <div id="historic-chart-controls" class="chart-controls" style="display: none;">
-                        <form hx-get="/charts/generate-historic" hx-indicator="#control-main-container" hx-target="#quick-test-results">
-                            <select id="historic-test-type" name="test">
-                                <option value="icmp">ICMP</option>
-                                <option value="download">Download</option>
-                                <option value="upload">Upload</option>
-                                <option value="route">Route</option>
-                                <option value="latency">Latency</option>
-                                <option value="bandwidth">Bandwidth</option>
-                            </select>
-                            <input type="number" id="historic-days" name="days" value="7" min="1" max="365" />
-                            <label for="historic-days">days</label>
-                            <button type="submit" class="btn btn-secondary">
-                                Generate Historic Chart
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Right side - Results Display -->
-            <div class="control-right">
-                <div class="results-section">
-                    <h3>Results</h3>
-                    <div class="results-display">
-                        <div class="results-container">
-                            <div id="quick-test-results">
-                                <div class="no-results">
-                                    <p>Run a test to see results here</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="content-area">
+    <div class="scheduler-header">
+      <h2>Control Panel</h2>
     </div>
+
+    <div class="control-main" id="control-main-container">
+      <!-- Loading indicator for the entire control area -->
+      <div class="htmx-indicator main-loader">
+        <img
+          src="/web/static/images/hamster.gif"
+          alt="Loading..."
+          class="loading-spinner"
+        />
+        <p>Processing request...</p>
+      </div>
+
+      <!-- Left side - Controls -->
+      <div class="control-left">
+        <!-- Network Test Section -->
+        <div class="control-section" id="network-test-section">
+          <h3>Network Tests</h3>
+          <div class="test-controls">
+            <select id="test-type" name="test">
+              <option value="icmp">ICMP Test</option>
+              <option value="download">Download Test</option>
+              <option value="upload">Upload Test</option>
+              <option value="route">Route Test</option>
+              <option value="latency">Latency Test</option>
+              <option value="bandwidth">Bandwidth Test</option>
+            </select>
+            <button
+              hx-get="/networktest"
+              hx-include="#test-type"
+              hx-target="#quick-test-results"
+              hx-indicator="#control-main-container"
+              hx-trigger="click"
+              class="btn btn-primary"
+            >
+            &raquo;
+            </button>
+          </div>
+        </div>
+        <!-- Chart Generation Section -->
+        <div class="control-section" id="chart-generation-section">
+          <h3>Chart Generation</h3>
+
+          <div class="chart-type-toggle">
+            <button class="chart-type-btn active" data-type="day">Day</button>
+            <button class="chart-type-btn" data-type="historic">
+              Historic
+            </button>
+          </div>
+
+          <!-- Day Chart Controls -->
+          <div id="day-chart-controls" class="chart-controls">
+            <form
+              hx-get="/charts/generate"
+              hx-indicator="#control-main-container"
+              hx-target="#quick-test-results"
+            >
+              <select id="chart-test-type" name="test">
+                <option value="icmp">ICMP</option>
+                <option value="download">Download</option>
+                <option value="upload">Upload</option>
+                <option value="route">Route</option>
+                <option value="latency">Latency</option>
+                <option value="bandwidth">Bandwidth</option>
+              </select>
+              <input
+                type="date"
+                id="chart-date"
+                name="date"
+                value="{{.CurrentDate}}"
+              />
+              <button type="submit" class="btn btn-secondary">
+                <span class="btn-text">&raquo;</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Historic Chart Controls -->
+          <div
+            id="historic-chart-controls"
+            class="chart-controls"
+            style="display: none"
+          >
+            <form
+              hx-get="/charts/generate-historic"
+              hx-indicator="#control-main-container"
+              hx-target="#quick-test-results"
+            >
+              <select id="historic-test-type" name="test">
+                <option value="icmp">ICMP</option>
+                <option value="download">Download</option>
+                <option value="upload">Upload</option>
+                <option value="route">Route</option>
+                <option value="latency">Latency</option>
+                <option value="bandwidth">Bandwidth</option>
+              </select>
+              <input
+                type="number"
+                id="historic-days"
+                name="days"
+                value="7"
+                min="1"
+                max="365"
+              />
+              <label for="historic-days">days</label>
+              <button type="submit" class="btn btn-secondary">
+                <span class="btn-text">&raquo;</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side - Results Display -->
+      <div class="control-right">
+        <div class="results-section">
+          <h3>Results</h3>
+          <div class="results-display">
+            <div class="results-container">
+              <div id="quick-test-results">
+                <div class="no-results">
+                  <p>Run a test or generate a chart to see results here</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
-    const dayControls = document.getElementById('day-chart-controls');
-    const historicControls = document.getElementById('historic-chart-controls');
-    
-    chartTypeBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const type = this.dataset.type;
-            
-            // Update button states
-            chartTypeBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Toggle controls
-            if (type === 'day') {
-                dayControls.style.display = 'flex';
-                historicControls.style.display = 'none';
-            } else {
-                dayControls.style.display = 'none';
-                historicControls.style.display = 'flex';
-            }
-        });
-    });
-});
+  document.addEventListener("DOMContentLoaded", function () {
+    const chartTypeBtns = document.querySelectorAll(".chart-type-btn");
+    const dayControls = document.getElementById("day-chart-controls");
+    const historicControls = document.getElementById("historic-chart-controls");
 
-document.body.addEventListener('htmx:afterRequest', function(event) {
-    if (event.detail.pathInfo.requestPath.includes('/charts/generate' || '/charts/generate-historic')) {
-        const resultsDiv = document.getElementById('quick-test-results');
-        
-        if (event.detail.xhr.status === 200) {
-            const chartPath = event.detail.xhr.responseText.trim();
-            
-            const chartPaths = chartPath.split(' ').filter(path => path.length > 0);
-            
-            let chartsHtml = '<div class="chart-results">';
-            chartPaths.forEach((path, index) => {
-                chartsHtml += `
+    chartTypeBtns.forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const type = this.dataset.type;
+
+        // Update button states
+        chartTypeBtns.forEach((b) => b.classList.remove("active"));
+        this.classList.add("active");
+
+        // Toggle controls
+        if (type === "day") {
+          dayControls.style.display = "flex";
+          historicControls.style.display = "none";
+        } else {
+          dayControls.style.display = "none";
+          historicControls.style.display = "flex";
+        }
+      });
+    });
+  });
+
+  document.body.addEventListener("htmx:afterRequest", function (event) {
+    if (
+      event.detail.pathInfo.requestPath.includes(
+        "/charts/generate" || "/charts/generate-historic"
+      )
+    ) {
+      const resultsDiv = document.getElementById("quick-test-results");
+
+      if (event.detail.xhr.status === 200) {
+        const chartPath = event.detail.xhr.responseText.trim();
+
+        const chartPaths = chartPath
+          .split(" ")
+          .filter((path) => path.length > 0);
+
+        let chartsHtml = '<div class="chart-results">';
+        chartPaths.forEach((path, index) => {
+          chartsHtml += `
                     <div class="chart-container">
                         <iframe src="${path}" width="100%" height="600" frameborder="0"></iframe>
                     </div>
                 `;
-            });
-            chartsHtml += '</div>';
-            
-            resultsDiv.innerHTML = chartsHtml;
-        } else {
-            resultsDiv.innerHTML = `
+        });
+        chartsHtml += "</div>";
+
+        resultsDiv.innerHTML = chartsHtml;
+      } else {
+        resultsDiv.innerHTML = `
                 <div class="chart-error">
                     <h5>Chart Generation Failed</h5>
                     <p>Status: ${event.detail.xhr.status}</p>
-                    <p>Error: ${event.detail.xhr.responseText || 'Unknown error'}</p>
+                    <p>Error: ${
+                      event.detail.xhr.responseText || "Unknown error"
+                    }</p>
                 </div>
             `;
-        }
+      }
     }
-});
+  });
 </script>
-{{end}}
+{{ end }}
