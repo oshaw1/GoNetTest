@@ -44,6 +44,12 @@ func (g *PageGenerator) GenerateTestQuadrant(selectedDate, selectedType string) 
 
 	var testGroups []TestGroup
 
+	if len(testTypes) != 0 {
+		if !contains(testTypes, selectedType) {
+			selectedType = testTypes[0]
+		}
+	}
+
 	// Process Test Type if specified
 	if selectedType != "" {
 		log.Printf("%s: Processing test type: %s", logPrefix, selectedType)
@@ -82,6 +88,15 @@ func (g *PageGenerator) GenerateTestQuadrant(selectedDate, selectedType string) 
 		SelectedType: selectedType,
 		TestGroups:   testGroups,
 	}, nil
+}
+
+func contains(slice []string, element string) bool {
+	for _, v := range slice {
+		if v == element {
+			return true
+		}
+	}
+	return false
 }
 
 func processJsonFile(filename string, group *TestGroup) error {

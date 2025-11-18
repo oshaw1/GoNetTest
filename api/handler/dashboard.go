@@ -36,15 +36,20 @@ func (h *DashboardHandler) ServeTestQuadrant(w http.ResponseWriter, r *http.Requ
 	date := r.URL.Query().Get("date")
 	testType := r.URL.Query().Get("type")
 
+	isDateChange := date != "" && r.URL.Query().Get("refresh_dropdown") != "false"
+
 	data, err := h.generator.GenerateTestQuadrant(date, testType)
 	if err != nil {
 		handleError(w, "Error generating test data", err, 500)
 		return
 	}
 
-	if testType == "" {
+	if isDateChange {
+		w.Write([]byte(`<div id="test-selection" hx-swap-oob="true">`))
 		h.generator.RenderTestSelection(w, data)
+		w.Write([]byte(`</div>`))
 	}
+
 	h.generator.RenderTestResults(w, data)
 }
 

@@ -21,14 +21,14 @@
 {{end}}
 
 {{define "test_selection"}}
-    <select hx-get="/dashboard/tests?date={{.SelectedDate}}" 
+    <select hx-get="/dashboard/tests?date={{.SelectedDate}}&refresh_dropdown=false" 
             hx-trigger="change" 
             hx-target="#test-results" 
             hx-include="this"
             name="type" 
             class="">
         {{range .TestTypes}}
-            <option value="{{.}}">{{.}}</option>
+            <option value="{{.}}" {{if eq . $.SelectedType}}selected{{end}}>{{.}}</option>
         {{end}}
     </select>
 {{end}}
