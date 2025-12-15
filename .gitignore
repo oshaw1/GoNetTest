@@ -27,6 +27,7 @@ go.work.sum
 # data
 data/output/*
 !data/output/.gitkeep
+!data/schedule.json
 data/
 
 GoNetTest

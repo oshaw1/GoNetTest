@@ -202,3 +202,18 @@ func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType 
 	}
 	return nil
 }
+
+func (h *NetworkTestHandler) HandleDeleteTests(w http.ResponseWriter, r *http.Request) {
+	date := r.URL.Query().Get("date")
+	if date == "" {
+		http.Error(w, "Missing date property", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.repository.DeleteFolder("data/output/" + date); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

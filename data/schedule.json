@@ -1,1 +1,32 @@
-{}
+{
+  "1763477171869084052": {
+    "name": "Weekly Download",
+    "test_type": "download",
+    "datetime": "2025-12-17T19:48:00Z",
+    "recurring": true,
+    "interval": "weekly",
+    "active": true,
+    "last_ran": "2025-12-10T19:48:56Z",
+    "created_on": "2025-11-18T14:46:11.869087944Z"
+  },
+  "1763477195999395471": {
+    "name": "Weekly Upload",
+    "test_type": "upload",
+    "datetime": "2025-12-17T20:48:00Z",
+    "recurring": true,
+    "interval": "weekly",
+    "active": true,
+    "last_ran": "2025-12-10T20:48:56Z",
+    "created_on": "2025-11-18T14:46:35.999399085Z"
+  },
+  "1763477265569969152": {
+    "name": "Monthly Bandwidth",
+    "test_type": "bandwidth",
+    "datetime": "2025-12-30T01:47:00Z",
+    "recurring": true,
+    "interval": "monthly",
+    "active": true,
+    "last_ran": "2025-11-30T01:47:56Z",
+    "created_on": "2025-11-18T14:47:45.569972473Z"
+  }
+}

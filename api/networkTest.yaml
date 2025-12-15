@@ -31,6 +31,37 @@ paths:
        '500':
          description: Test execution failed
 
+ /networktest/delete:
+    delete:
+      summary: Delete test folder by date
+      description: Recursively deletes the data output folder corresponding to the specific date provided.
+      parameters:
+        - name: date
+          in: query
+          description: The date string used to identify the folder in 'data/output/'.
+          required: true
+          schema:
+            type: string
+            example: "2023-12-25"
+      responses:
+        '200':
+          description: Folder deleted successfully.
+        '400':
+          description: Bad Request. The date parameter is missing.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Missing date property"
+        '404':
+          description: Not Found. The folder could not be found or deleted.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "remove data/output/2023-12-25: no such file or directory"
+
+
  /networktest/test-results:
    get:
      summary: Get test results

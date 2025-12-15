@@ -1,14 +1,32 @@
 {{define "test_quadrant"}}
 <div id="test-quadrant" class="quadrant">
-    <div class="sidebar">
+    <div id="date-sidebar" class="sidebar">
         {{range .Dates}}
-            <button hx-get="/dashboard/tests?date={{.}}" 
+            <div class="sidebar-item-group sidebar-button"> 
+                
+                <button 
+                    hx-get="/dashboard/tests?date={{.}}" 
                     hx-target="#test-results"
-                    hx-include="#test-selection select">
-                {{.}}
-            </button>
+                    hx-include="#test-selection select"
+                    class="sidebar-main-action" {{/* New class for the inner button */}}
+                >
+                    {{.}}
+                </button>
+                
+                <button 
+                    class="btn sidebar-delete-btn delete-icon-circle" 
+                    hx-delete="/networktest/delete?date={{.}}"
+                    hx-confirm="Are you sure you want to permanently delete ALL test data for {{.}}? This action cannot be reversed."
+                    hx-on::after-request="if(event.detail.successful) { window.location.reload(); }"
+                    
+                    title="Permanently delete data for {{.}}"
+                >
+                    🗑️
+                </button>
+            </div>
         {{end}}
     </div>
+    
     <div class="content-area">
         <div id="test-selection">
             {{template "test_selection" .}}
