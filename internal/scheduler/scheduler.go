@@ -128,6 +128,12 @@ func (s *Scheduler) updateNextRunTime(schedule *Task) {
 			schedule.DateTime = schedule.DateTime.AddDate(0, 0, 7)
 		case "monthly":
 			schedule.DateTime = schedule.DateTime.AddDate(0, 1, 0)
+		case "bimonthly":
+			schedule.DateTime = schedule.DateTime.AddDate(0, 2, 0)
+		case "biannually":
+			schedule.DateTime = schedule.DateTime.AddDate(0, 6, 0)
+		case "annually":
+			schedule.DateTime = schedule.DateTime.AddDate(1, 0, 0)
 		}
 	}
 }

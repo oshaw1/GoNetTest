@@ -915,7 +915,6 @@ html {
   background-color: #f8f9fa;
   padding: 1rem;
   border: 1px solid #e9ecef;
-  overflow-y: auto;
   border-radius: 4px;
   line-height: 1.4;
 }

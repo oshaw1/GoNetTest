@@ -140,7 +140,7 @@ components:
          type: boolean
        interval:
          type: string
-         enum: [daily, weekly, monthly]
+         enum: [daily, weekly, monthly, bimonthly, biannually, anually]
        active:
          type: boolean
      required:

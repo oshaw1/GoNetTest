@@ -59,6 +59,30 @@ func TestUpdateNextRunTime(t *testing.T) {
 			},
 			expected: now.AddDate(0, 1, 0),
 		},
+		{
+			name: "Bi Monthly interval",
+			schedule: Task{
+				DateTime: now,
+				Interval: "bimonthly",
+			},
+			expected: now.AddDate(0, 2, 0),
+		},
+		{
+			name: "6 Monthly interval",
+			schedule: Task{
+				DateTime: now,
+				Interval: "biannually",
+			},
+			expected: now.AddDate(0, 6, 0),
+		},
+		{
+			name: "Yearly interval",
+			schedule: Task{
+				DateTime: now,
+				Interval: "annually",
+			},
+			expected: now.AddDate(1, 0, 0),
+		},
 	}
 
 	for _, tt := range tests {
