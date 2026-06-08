@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/oshaw1/go-net-test/api/handler"
@@ -34,12 +33,13 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	err = os.MkdirAll("data/output/", 0755)
+	db, err := dataManagement.OpenDB("data/gonettest.db")
 	if err != nil {
-		log.Fatalf("failed to create directory structure: %e", err)
+		log.Fatalf("Failed to open database: %v", err)
 	}
+	defer db.Close()
 
-	repository := dataManagement.NewRepository("data/output", conf)
+	repository := dataManagement.NewRepository(db, conf)
 	tester := networkTesting.NewNetworkTester(conf)
 	scheduler := scheduler.NewScheduler("http://"+conf.Ip+conf.Port, conf.Scheduler.Schedule)
 
@@ -51,7 +51,6 @@ func main() {
 
 	mux := middleware.NewRouteMux()
 
-	mux.Handle("/data/output/", http.StripPrefix("/data/output/", http.FileServer(http.Dir("data/output"))))
 	mux.Handle("/web/static/", http.StripPrefix("/web/static/", http.FileServer(http.Dir("web/static"))))
 
 	mux.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))
@@ -67,6 +66,7 @@ func main() {
 	mux.HandleFunc("/networktest/delete", middleware.LoggingMiddleware(networkTestHandler.HandleDeleteTests))
 	mux.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))
 
+	mux.HandleFunc("/charts/view", middleware.LoggingMiddleware(chartHandler.ServeChart))
 	mux.HandleFunc("/charts/generate", middleware.LoggingMiddleware(chartHandler.GenerateChart))
 	mux.HandleFunc("/charts/generate-historic", middleware.LoggingMiddleware(chartHandler.GenerateHistoricChart))
 

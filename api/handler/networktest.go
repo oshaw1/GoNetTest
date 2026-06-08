@@ -13,7 +13,6 @@ import (
 
 const dateFormat = "2006-01-02"
 
-// NetworkTestHandler handles network test HTTP requests
 type NetworkTestHandler struct {
 	tester     *networkTesting.NetworkTester
 	repository *dataManagement.Repository
@@ -28,7 +27,6 @@ func NewNetworkTestHandler(tester *networkTesting.NetworkTester, repo *dataManag
 	}
 }
 
-// HandleNetworkTest handles the test execution request
 func (h *NetworkTestHandler) HandleNetworkTest(w http.ResponseWriter, r *http.Request) {
 	testType := r.URL.Query().Get("test")
 	if testType == "" {
@@ -45,7 +43,6 @@ func (h *NetworkTestHandler) HandleNetworkTest(w http.ResponseWriter, r *http.Re
 	writeJSONResponse(w, result)
 }
 
-// GetResults handles the retrieval of test results
 func (h *NetworkTestHandler) GetResults(w http.ResponseWriter, r *http.Request) {
 	testType, date, err := h.extractResultParams(r)
 	if err != nil {
@@ -100,13 +97,13 @@ func (h *NetworkTestHandler) runAndSaveTest(testType string) (interface{}, error
 		return nil, fmt.Errorf("no test results returned")
 	}
 
-	_, err = h.repository.SaveTestResult(result, testType)
+	resultID, err := h.repository.SaveTestResult(result, testType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save test result: %w", err)
 	}
 
 	go func() {
-		if err := h.generateAndSaveCharts(result, testType); err != nil {
+		if err := h.generateAndSaveCharts(result, testType, resultID); err != nil {
 			log.Printf("Chart generation failed: %v", err)
 		}
 	}()
@@ -132,69 +129,69 @@ func (h *NetworkTestHandler) extractResultParams(r *http.Request) (string, strin
 	return testType, date, nil
 }
 
-func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType string) error {
+func (h *NetworkTestHandler) generateAndSaveCharts(result interface{}, testType string, resultID int64) error {
 	switch testType {
 	case "icmp":
 		if icmpResult, ok := result.(*networkTesting.ICMPTestResult); ok {
 			pieChart, err := h.charts.GenerateICMPAnalysisCharts(icmpResult)
 			if err != nil {
-				return fmt.Errorf("failed to generate distribution chart: %w", err)
+				return fmt.Errorf("failed to generate ICMP chart: %w", err)
 			}
-			if _, err := h.repository.SaveChart(pieChart, "icmp", "distribution"); err != nil {
-				log.Printf("Failed to save distribution chart: %v", err)
+			if _, err := h.repository.SaveChart(pieChart, "icmp", "distribution", resultID); err != nil {
+				log.Printf("Failed to save ICMP chart: %v", err)
 			}
 		}
 	case "download":
 		if downloadResult, ok := result.(*networkTesting.AverageSpeedTestResult); ok {
 			bar, err := h.charts.GenerateDownloadAnalysisCharts(downloadResult)
 			if err != nil {
-				return fmt.Errorf("failed to generate distribution chart: %w", err)
+				return fmt.Errorf("failed to generate download chart: %w", err)
 			}
-			if _, err := h.repository.SaveChart(bar, "download", "speed"); err != nil {
-				log.Printf("Failed to save route line chart: %v", err)
+			if _, err := h.repository.SaveChart(bar, "download", "speed", resultID); err != nil {
+				log.Printf("Failed to save download chart: %v", err)
 			}
 		}
 	case "upload":
 		if uploadResult, ok := result.(*networkTesting.AverageSpeedTestResult); ok {
 			bar, err := h.charts.GenerateUploadAnalysisCharts(uploadResult)
 			if err != nil {
-				return fmt.Errorf("failed to generate distribution chart: %w", err)
+				return fmt.Errorf("failed to generate upload chart: %w", err)
 			}
-			if _, err := h.repository.SaveChart(bar, "upload", "speed"); err != nil {
-				log.Printf("Failed to save route line chart: %v", err)
+			if _, err := h.repository.SaveChart(bar, "upload", "speed", resultID); err != nil {
+				log.Printf("Failed to save upload chart: %v", err)
 			}
 		}
 	case "route":
 		if routeResult, ok := result.(*networkTesting.RouteTestResult); ok {
 			lineChart, err := h.charts.GenerateRouteAnalysisCharts(routeResult)
 			if err != nil {
-				return fmt.Errorf("failed to generate distribution chart: %w", err)
+				return fmt.Errorf("failed to generate route chart: %w", err)
 			}
-			if _, err := h.repository.SaveChart(lineChart, "route", "path"); err != nil {
-				log.Printf("Failed to save route line chart: %v", err)
+			if _, err := h.repository.SaveChart(lineChart, "route", "path", resultID); err != nil {
+				log.Printf("Failed to save route chart: %v", err)
 			}
 		}
 	case "latency":
 		if latencyResult, ok := result.(*networkTesting.LatencyTestResult); ok {
 			lineChart, err := h.charts.GenerateLatencyAnalysisCharts(latencyResult)
 			if err != nil {
-				return fmt.Errorf("failed to generate distribution chart: %w", err)
+				return fmt.Errorf("failed to generate latency chart: %w", err)
 			}
-			if _, err := h.repository.SaveChart(lineChart, "latency", "path"); err != nil {
-				log.Printf("Failed to save route line chart: %v", err)
+			if _, err := h.repository.SaveChart(lineChart, "latency", "path", resultID); err != nil {
+				log.Printf("Failed to save latency chart: %v", err)
 			}
 		}
 	case "bandwidth":
 		if bandwidthResult, ok := result.(*networkTesting.BandwidthTestResult); ok {
 			bar3dSpeed, bar3dDuration, err := h.charts.GenerateBandwidthAnalysisCharts(bandwidthResult)
 			if err != nil {
-				return fmt.Errorf("failed to generate distribution chart: %w", err)
+				return fmt.Errorf("failed to generate bandwidth charts: %w", err)
 			}
-			if _, err := h.repository.SaveChart(bar3dSpeed, "bandwidth", "speed"); err != nil {
-				log.Printf("Failed to save route line chart: %v", err)
+			if _, err := h.repository.SaveChart(bar3dSpeed, "bandwidth", "speed", resultID); err != nil {
+				log.Printf("Failed to save bandwidth speed chart: %v", err)
 			}
-			if _, err := h.repository.SaveChart(bar3dDuration, "bandwidth", "duration"); err != nil {
-				log.Printf("Failed to save route line chart: %v", err)
+			if _, err := h.repository.SaveChart(bar3dDuration, "bandwidth", "duration", resultID); err != nil {
+				log.Printf("Failed to save bandwidth duration chart: %v", err)
 			}
 		}
 	default:
@@ -210,7 +207,7 @@ func (h *NetworkTestHandler) HandleDeleteTests(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if err := h.repository.DeleteFolder("data/output/" + date); err != nil {
+	if err := h.repository.DeleteByDate(date); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

@@ -12,7 +12,7 @@ import (
 type Repository interface {
 	GetTestDirectories() ([]string, error)
 	ListTestTypesInDateDir(date string) ([]string, error)
-	MapTestFilesByTimestamp(date, testType string) (map[string][]string, error)
+	MapTestsByTimestamp(date, testType string) (map[string]*dataManagement.TestRecord, error)
 }
 
 type PageGenerator struct {

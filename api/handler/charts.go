@@ -26,6 +26,24 @@ func NewChartHandler(repo *dataManagement.Repository, conf *config.Config) *Char
 	}
 }
 
+func (h *ChartHandler) ServeChart(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		http.Error(w, "invalid chart id", http.StatusBadRequest)
+		return
+	}
+
+	html, err := h.repository.GetChartHTML(id)
+	if err != nil {
+		http.Error(w, "chart not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(html))
+}
+
 func (h *ChartHandler) GenerateChart(w http.ResponseWriter, r *http.Request) {
 	testType := r.URL.Query().Get("test")
 	if testType == "" {
@@ -104,7 +122,7 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		if err != nil {
 			return "", fmt.Errorf("failed to generate download chart: %w", err)
 		}
-		chartPath, _ = h.repository.SaveChart(bar, "download", "speed_ot")
+		chartPath, _ = h.repository.SaveChart(bar, "download", "speed_ot", 0)
 	case "upload":
 		uploadResults := make([]*networkTesting.AverageSpeedTestResult, len(results))
 		for i, r := range results {
@@ -114,7 +132,7 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		if err != nil {
 			return "", fmt.Errorf("failed to generate upload chart: %w", err)
 		}
-		chartPath, _ = h.repository.SaveChart(bar, "upload", "speed_ot")
+		chartPath, _ = h.repository.SaveChart(bar, "upload", "speed_ot", 0)
 	case "route":
 		result := make([]*networkTesting.RouteTestResult, len(results))
 		for i, r := range results {
@@ -122,9 +140,9 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		barline, err := h.charts.GenerateHistoricRouteAnalysisCharts(result)
 		if err != nil {
-			return "", fmt.Errorf("failed to generate upload chart: %w", err)
+			return "", fmt.Errorf("failed to generate route chart: %w", err)
 		}
-		chartPath, _ = h.repository.SaveChart(barline, "route", "rtt_ot")
+		chartPath, _ = h.repository.SaveChart(barline, "route", "rtt_ot", 0)
 	case "latency":
 		latencyResults := make([]*networkTesting.LatencyTestResult, len(results))
 		for i, r := range results {
@@ -134,7 +152,7 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		if err != nil {
 			return "", fmt.Errorf("failed to generate latency chart: %w", err)
 		}
-		chartPath, _ = h.repository.SaveChart(bar, "latency", "latency_ot")
+		chartPath, _ = h.repository.SaveChart(bar, "latency", "latency_ot", 0)
 	case "bandwidth":
 		bandwidthResult := make([]*networkTesting.BandwidthTestResult, len(results))
 		for i, r := range results {
@@ -142,11 +160,11 @@ func (h *ChartHandler) generateAndSaveHistoricCharts(results []*networkTesting.T
 		}
 		speedBar, durationBar, err := h.charts.GenerateHistoricBandwidthAnalysisCharts(bandwidthResult)
 		if err != nil {
-			return "", fmt.Errorf("failed to generate download chart: %w", err)
+			return "", fmt.Errorf("failed to generate bandwidth chart: %w", err)
 		}
-		chartPath, _ = h.repository.SaveChart(speedBar, "bandwidth", "bandwidth_speed_ot")
-		chartPath2, _ := h.repository.SaveChart(durationBar, "bandwidth", "bandwidth_duration_ot")
-		chartPath = chartPath + chartPath2
+		chartPath, _ = h.repository.SaveChart(speedBar, "bandwidth", "bandwidth_speed_ot", 0)
+		chartPath2, _ := h.repository.SaveChart(durationBar, "bandwidth", "bandwidth_duration_ot", 0)
+		chartPath = chartPath + " " + chartPath2
 	default:
 		return "", fmt.Errorf("unsupported test type: %s", testType)
 	}
@@ -161,7 +179,7 @@ func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, 
 		if err != nil {
 			return "", fmt.Errorf("failed to generate ICMP chart: %w", err)
 		}
-		chartPath, err = h.repository.SaveChart(pieChart, "icmp", "distribution")
+		chartPath, err = h.repository.SaveChart(pieChart, "icmp", "distribution", 0)
 		if err != nil {
 			return "", fmt.Errorf("failed to save ICMP chart: %w", err)
 		}
@@ -170,7 +188,7 @@ func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, 
 		if err != nil {
 			return "", fmt.Errorf("failed to generate download chart: %w", err)
 		}
-		chartPath, err = h.repository.SaveChart(bar, "download", "speed")
+		chartPath, err = h.repository.SaveChart(bar, "download", "speed", 0)
 		if err != nil {
 			return "", fmt.Errorf("failed to save download chart: %w", err)
 		}
@@ -179,7 +197,7 @@ func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, 
 		if err != nil {
 			return "", fmt.Errorf("failed to generate upload chart: %w", err)
 		}
-		chartPath, err = h.repository.SaveChart(bar, "upload", "speed")
+		chartPath, err = h.repository.SaveChart(bar, "upload", "speed", 0)
 		if err != nil {
 			return "", fmt.Errorf("failed to save upload chart: %w", err)
 		}
@@ -188,7 +206,7 @@ func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, 
 		if err != nil {
 			return "", fmt.Errorf("failed to generate route chart: %w", err)
 		}
-		chartPath, err = h.repository.SaveChart(lineChart, "route", "path")
+		chartPath, err = h.repository.SaveChart(lineChart, "route", "path", 0)
 		if err != nil {
 			return "", fmt.Errorf("failed to save route chart: %w", err)
 		}
@@ -197,7 +215,7 @@ func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, 
 		if err != nil {
 			return "", fmt.Errorf("failed to generate latency chart: %w", err)
 		}
-		chartPath, err = h.repository.SaveChart(lineChart, "latency", "path")
+		chartPath, err = h.repository.SaveChart(lineChart, "latency", "path", 0)
 		if err != nil {
 			return "", fmt.Errorf("failed to save latency chart: %w", err)
 		}
@@ -206,11 +224,11 @@ func (h *ChartHandler) generateAndSaveCharts(result *networkTesting.TestResult, 
 		if err != nil {
 			return "", fmt.Errorf("failed to generate bandwidth charts: %w", err)
 		}
-		chartPath, err = h.repository.SaveChart(bar3dSpeed, "bandwidth", "speed")
+		chartPath, err = h.repository.SaveChart(bar3dSpeed, "bandwidth", "speed", 0)
 		if err != nil {
 			return "", fmt.Errorf("failed to save bandwidth speed chart: %w", err)
 		}
-		chartPath2, err := h.repository.SaveChart(bar3dDuration, "bandwidth", "duration")
+		chartPath2, err := h.repository.SaveChart(bar3dDuration, "bandwidth", "duration", 0)
 		if err != nil {
 			return "", fmt.Errorf("failed to save bandwidth duration chart: %w", err)
 		}

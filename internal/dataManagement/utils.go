@@ -1,95 +1,51 @@
 package dataManagement
 
-import (
-	"encoding/json"
-	"fmt"
-	"os"
-	"path/filepath"
-	"reflect"
-	"sort"
-	"time"
-)
+import "fmt"
 
-func (r *Repository) readJSONFile(path string) (interface{}, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	var result interface{}
-	if err := json.Unmarshal(content, &result); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal data: %w", err)
-	}
-
-	return result, nil
-}
-
-func (r *Repository) convertToMap(data interface{}) (map[string]interface{}, error) {
-	value := reflect.ValueOf(data)
-	if value.Kind() == reflect.Ptr {
-		value = value.Elem()
-	}
-
-	if value.Kind() == reflect.Struct {
-		return structToMap(value), nil
-	}
-
-	if value.Kind() == reflect.Map {
-		if m, ok := data.(map[string]interface{}); ok {
-			return m, nil
-		}
-	}
-
-	return nil, fmt.Errorf("unsupported data type: %v", value.Kind())
-}
-
-func structToMap(value reflect.Value) map[string]interface{} {
-	result := make(map[string]interface{})
-	for i := 0; i < value.NumField(); i++ {
-		field := value.Type().Field(i)
-		fieldValue := value.Field(i)
-		result[field.Name] = fieldValue.Interface()
-	}
-	return result
-}
-
-func isDateFolder(name string) bool {
-	_, err := time.Parse(dateFormat, name)
-	return err == nil
-}
-
-// Gets all test date directories sorted newest first
+// GetTestDirectories returns distinct dates that have test results, newest first.
 func (r *Repository) GetTestDirectories() ([]string, error) {
-	files, err := os.ReadDir(r.baseDir)
+	rows, err := r.db.Query(`
+		SELECT DISTINCT strftime('%Y-%m-%d', timestamp) AS d
+		FROM test_results
+		WHERE timestamp IS NOT NULL
+		ORDER BY d DESC
+	`)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read directory: %w", err)
+		return nil, fmt.Errorf("failed to query test dates: %w", err)
 	}
+	defer rows.Close()
 
 	var dates []string
-	for _, f := range files {
-		if f.IsDir() {
-			dates = append(dates, f.Name())
+	for rows.Next() {
+		var d string
+		if err := rows.Scan(&d); err != nil {
+			return nil, err
 		}
+		dates = append(dates, d)
 	}
-
-	sort.Sort(sort.Reverse(sort.StringSlice(dates)))
-	return dates, nil
+	return dates, rows.Err()
 }
 
+// ListTestTypesInDateDir returns distinct test types present for the given date.
 func (r *Repository) ListTestTypesInDateDir(date string) ([]string, error) {
-	dateDir := filepath.Join(r.baseDir, date)
-	files, err := os.ReadDir(dateDir)
+	rows, err := r.db.Query(`
+		SELECT DISTINCT test_type
+		FROM test_results
+		WHERE strftime('%Y-%m-%d', timestamp) = ?
+		ORDER BY test_type
+	`, date)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read directory: %w", err)
+		return nil, fmt.Errorf("failed to query test types: %w", err)
 	}
+	defer rows.Close()
 
 	var types []string
-	for _, f := range files {
-		if f.IsDir() {
-			types = append(types, f.Name())
+	for rows.Next() {
+		var t string
+		if err := rows.Scan(&t); err != nil {
+			return nil, err
 		}
+		types = append(types, t)
 	}
-
-	sort.Strings(types)
-	return types, nil
+	return types, rows.Err()
 }

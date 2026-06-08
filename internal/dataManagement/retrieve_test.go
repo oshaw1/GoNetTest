@@ -1,9 +1,6 @@
 package dataManagement
 
 import (
-	"encoding/json"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -12,83 +9,38 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type TestSetup struct {
-	baseDir string
-	repo    *Repository
-}
-
-func setupTest(t *testing.T) *TestSetup {
-	// Create a temporary directory for test data
-	baseDir, err := os.MkdirTemp("", "test-data-*")
+func newTestRepo(t *testing.T) *Repository {
+	t.Helper()
+	db, err := OpenDB(":memory:")
 	require.NoError(t, err)
-
-	repo := &Repository{
-		baseDir: baseDir,
-	}
-
-	return &TestSetup{
-		baseDir: baseDir,
-		repo:    repo,
-	}
-}
-
-func teardownTest(setup *TestSetup) {
-	os.RemoveAll(setup.baseDir)
-}
-
-func createTestData(t *testing.T, setup *TestSetup, date string, testType string, data interface{}) string {
-	datePath := filepath.Join(setup.baseDir, date)
-	testPath := filepath.Join(datePath, testType)
-	require.NoError(t, os.MkdirAll(testPath, 0755))
-
-	filePath := filepath.Join(testPath, "test.json")
-	jsonData, err := json.Marshal(data)
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filePath, jsonData, 0644))
-
-	return filePath
+	t.Cleanup(func() { db.Close() })
+	return NewRepository(db, nil)
 }
 
 func TestGetTestData(t *testing.T) {
-	setup := setupTest(t)
-	defer teardownTest(setup)
+	repo := newTestRepo(t)
+
+	icmpData := &networkTesting.ICMPTestResult{AvgRTT: 20}
+	id, err := repo.SaveTestResult(icmpData, "icmp")
+	require.NoError(t, err)
+	require.Greater(t, id, int64(0))
+
+	today := time.Now().UTC().Format(dateFormat)
 
 	tests := []struct {
 		name        string
 		date        string
 		testType    string
-		setupData   func() string
 		wantErr     bool
+		wantNil     bool
 		validateRes func(*networkTesting.TestResult) bool
 	}{
 		{
 			name:     "valid ICMP data",
-			date:     "2024-03-25",
+			date:     today,
 			testType: "icmp",
-			setupData: func() string {
-				icmpData := &networkTesting.ICMPTestResult{
-					Timestamp: time.Now(),
-					AvgRTT:    20,
-				}
-				return createTestData(t, setup, "2024-03-25", "icmp", icmpData)
-			},
 			validateRes: func(res *networkTesting.TestResult) bool {
-				return res.ICMP != nil && res.ICMP.AvgRTT == 20
-			},
-		},
-		{
-			name:     "valid download data",
-			date:     "2024-03-25",
-			testType: "download",
-			setupData: func() string {
-				downloadData := &networkTesting.AverageSpeedTestResult{
-					Timestamp:   time.Now(),
-					AverageMbps: 100.5,
-				}
-				return createTestData(t, setup, "2024-03-25", "download", downloadData)
-			},
-			validateRes: func(res *networkTesting.TestResult) bool {
-				return res.Download != nil && res.Download.AverageMbps == 100.5
+				return res != nil && res.ICMP != nil && res.ICMP.AvgRTT == 20
 			},
 		},
 		{
@@ -99,27 +51,24 @@ func TestGetTestData(t *testing.T) {
 		},
 		{
 			name:     "non-existent date",
-			date:     "2024-03-26",
+			date:     "2000-01-01",
 			testType: "icmp",
-			validateRes: func(res *networkTesting.TestResult) bool {
-				return res == nil
-			},
+			wantNil:  true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.setupData != nil {
-				tt.setupData()
-			}
-
-			result, err := setup.repo.GetTestData(tt.date, tt.testType)
+			result, err := repo.GetTestData(tt.date, tt.testType)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
 			}
-
 			assert.NoError(t, err)
+			if tt.wantNil {
+				assert.Nil(t, result)
+				return
+			}
 			if tt.validateRes != nil {
 				assert.True(t, tt.validateRes(result))
 			}
@@ -128,171 +77,67 @@ func TestGetTestData(t *testing.T) {
 }
 
 func TestGetTestDataInRange(t *testing.T) {
-	setup := setupTest(t)
-	defer teardownTest(setup)
+	repo := newTestRepo(t)
 
-	// Create test data for a range of dates
-	startDate := time.Date(2024, 3, 20, 0, 0, 0, 0, time.UTC)
-	endDate := time.Date(2024, 3, 25, 0, 0, 0, 0, time.UTC)
+	icmpData := &networkTesting.ICMPTestResult{AvgRTT: 20}
+	_, err := repo.SaveTestResult(icmpData, "icmp")
+	require.NoError(t, err)
 
-	// Setup test data
-	dates := []string{"2024-03-20", "2024-03-22", "2024-03-25"}
-	for _, date := range dates {
-		icmpData := &networkTesting.ICMPTestResult{
-			Timestamp: time.Now(),
-			AvgRTT:    20,
-		}
-		createTestData(t, setup, date, "icmp", icmpData)
-	}
+	start := time.Now().UTC().AddDate(0, 0, -1)
+	end := time.Now().UTC().AddDate(0, 0, 1)
 
-	tests := []struct {
-		name      string
-		startDate time.Time
-		endDate   time.Time
-		testType  string
-		wantLen   int
-		wantErr   bool
-	}{
-		{
-			name:      "valid date range",
-			startDate: startDate,
-			endDate:   endDate,
-			testType:  "icmp",
-			wantLen:   3,
-		},
-		{
-			name:      "invalid date range",
-			startDate: endDate,
-			endDate:   startDate,
-			testType:  "icmp",
-			wantLen:   0,
-		},
-	}
+	results, err := repo.GetTestDataInRange(start, end, "icmp")
+	assert.NoError(t, err)
+	assert.Len(t, results, 1)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			results, err := setup.repo.GetTestDataInRange(tt.startDate, tt.endDate, tt.testType)
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.Len(t, results, tt.wantLen)
-		})
-	}
+	// Inverted range returns nothing
+	results, err = repo.GetTestDataInRange(end, start, "icmp")
+	assert.NoError(t, err)
+	assert.Empty(t, results)
 }
 
 func TestGetChart(t *testing.T) {
-	setup := setupTest(t)
-	defer teardownTest(setup)
+	repo := newTestRepo(t)
 
-	// Create test chart file
-	date := "2024-03-25"
-	datePath := filepath.Join(setup.baseDir, date)
-	testPath := filepath.Join(datePath, "icmp")
-	require.NoError(t, os.MkdirAll(testPath, 0755))
-	chartPath := filepath.Join(testPath, "chart.html")
-	require.NoError(t, os.WriteFile(chartPath, []byte("<html></html>"), 0644))
+	today := time.Now().UTC().Format(dateFormat)
 
-	tests := []struct {
-		name       string
-		date       string
-		testType   string
-		wantExists bool
-		wantErr    bool
-	}{
-		{
-			name:       "existing chart",
-			date:       "2024-03-25",
-			testType:   "icmp",
-			wantExists: true,
-		},
-		{
-			name:       "non-existent chart",
-			date:       "2024-03-26",
-			testType:   "icmp",
-			wantExists: false,
-		},
-		{
-			name:     "invalid date",
-			date:     "invalid-date",
-			testType: "icmp",
-			wantErr:  true,
-		},
-	}
+	// Save a test result and a linked chart
+	id, err := repo.SaveTestResult(&networkTesting.ICMPTestResult{}, "icmp")
+	require.NoError(t, err)
+	_, err = repo.SaveChart(MockChart{}, "icmp", "distribution", id)
+	require.NoError(t, err)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			exists, path, err := setup.repo.GetChart(tt.date, tt.testType)
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
+	exists, path, err := repo.GetChart(today, "icmp")
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Contains(t, path, "/charts/view?id=")
 
-			assert.NoError(t, err)
-			assert.Equal(t, tt.wantExists, exists)
-			if tt.wantExists {
-				assert.NotEmpty(t, path)
-			}
-		})
-	}
+	exists, _, err = repo.GetChart("2000-01-01", "icmp")
+	assert.NoError(t, err)
+	assert.False(t, exists)
+
+	_, _, err = repo.GetChart("invalid-date", "icmp")
+	assert.Error(t, err)
 }
 
-func TestGetChartInRange(t *testing.T) {
-	setup := setupTest(t)
-	defer teardownTest(setup)
+func TestMapTestsByTimestamp(t *testing.T) {
+	repo := newTestRepo(t)
 
-	// Create test chart files
-	dates := []string{"2024-03-20", "2024-03-22", "2024-03-25"}
-	for _, date := range dates {
-		datePath := filepath.Join(setup.baseDir, date)
-		testPath := filepath.Join(datePath, "icmp")
-		require.NoError(t, os.MkdirAll(testPath, 0755))
-		chartPath := filepath.Join(testPath, "chart.html")
-		require.NoError(t, os.WriteFile(chartPath, []byte("<html></html>"), 0644))
-	}
+	icmpData := &networkTesting.ICMPTestResult{AvgRTT: 42}
+	resultID, err := repo.SaveTestResult(icmpData, "icmp")
+	require.NoError(t, err)
 
-	startDate := time.Date(2024, 3, 20, 0, 0, 0, 0, time.UTC)
-	endDate := time.Date(2024, 3, 25, 0, 0, 0, 0, time.UTC)
+	_, err = repo.SaveChart(MockChart{}, "icmp", "distribution", resultID)
+	require.NoError(t, err)
 
-	tests := []struct {
-		name       string
-		startDate  time.Time
-		endDate    time.Time
-		testType   string
-		wantExists bool
-		wantErr    bool
-	}{
-		{
-			name:       "valid date range",
-			startDate:  startDate,
-			endDate:    endDate,
-			testType:   "icmp",
-			wantExists: true,
-		},
-		{
-			name:       "invalid date range",
-			startDate:  endDate,
-			endDate:    startDate,
-			testType:   "icmp",
-			wantExists: false,
-		},
-	}
+	today := time.Now().UTC().Format(dateFormat)
+	records, err := repo.MapTestsByTimestamp(today, "icmp")
+	require.NoError(t, err)
+	require.Len(t, records, 1)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			exists, path, err := setup.repo.GetChartInRange(tt.startDate, tt.endDate, tt.testType)
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.Equal(t, tt.wantExists, exists)
-			if tt.wantExists {
-				assert.NotEmpty(t, path)
-			}
-		})
+	for _, rec := range records {
+		assert.NotEmpty(t, rec.TestJSON)
+		assert.Contains(t, rec.ChartPaths, "distribution")
+		assert.Contains(t, rec.ChartPaths["distribution"], "/charts/view?id=")
 	}
 }

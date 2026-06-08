@@ -1,237 +1,206 @@
 package dataManagement
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
-	"regexp"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/oshaw1/go-net-test/internal/networkTesting"
 )
 
-func (r *Repository) GetTestDataInRange(startDate time.Time, endDate time.Time, testType string) ([]*networkTesting.TestResult, error) {
-	log.Printf("GetTestDataInRange called with startDate: %s, endDate: %s, testType: %s",
-		startDate.Format(dateFormat), endDate.Format(dateFormat), testType)
-
-	var allResults []*networkTesting.TestResult
-
-	// Try each date in the range
-	for d := endDate; !d.Before(startDate); d = d.AddDate(0, 0, -1) {
-		dateStr := d.Format(dateFormat)
-
-		result, err := r.GetTestData(dateStr, testType)
-		if err != nil {
-			log.Printf("Error getting data for date %s: %v", dateStr, err)
-			continue
-		}
-
-		if result != nil {
-			allResults = append(allResults, result)
-		}
-	}
-
-	sort.Slice(allResults, func(i, j int) bool {
-		var timeI, timeJ time.Time
-
-		switch testType {
-		case "icmp":
-			if allResults[i].ICMP != nil && allResults[j].ICMP != nil {
-				timeI = allResults[i].ICMP.Timestamp
-				timeJ = allResults[j].ICMP.Timestamp
-			}
-		case "download":
-			if allResults[i].Download != nil && allResults[j].Download != nil {
-				timeI = allResults[i].Download.Timestamp
-				timeJ = allResults[j].Download.Timestamp
-			}
-		case "upload":
-			if allResults[i].Upload != nil && allResults[j].Upload != nil {
-				timeI = allResults[i].Upload.Timestamp
-				timeJ = allResults[j].Upload.Timestamp
-			}
-		case "latency":
-			if allResults[i].Latency != nil && allResults[j].Latency != nil {
-				timeI = allResults[i].Latency.Timestamp
-				timeJ = allResults[j].Latency.Timestamp
-			}
-		case "route":
-			if allResults[i].Route != nil && allResults[j].Route != nil {
-				timeI = allResults[i].Route.Timestamp
-				timeJ = allResults[j].Route.Timestamp
-			}
-		case "bandwidth":
-			if allResults[i].Bandwidth != nil && allResults[j].Bandwidth != nil {
-				timeI = allResults[i].Bandwidth.StartTime
-				timeJ = allResults[j].Bandwidth.StartTime
-			}
-		}
-
-		return timeI.After(timeJ)
-	})
-
-	return allResults, nil
+// TestRecord holds a test result and its associated chart URLs for a single test run.
+type TestRecord struct {
+	TestJSON   string
+	ChartPaths map[string]string // chart_type -> "/charts/view?id=X"
 }
 
-func (r *Repository) GetTestData(date string, testType string) (*networkTesting.TestResult, error) {
-	log.Printf("GetTestDataOnDate called with date: %s, testType: %s", date, testType)
+func (r *Repository) GetTestDataInRange(startDate, endDate time.Time, testType string) ([]*networkTesting.TestResult, error) {
+	log.Printf("GetTestDataInRange: type=%s start=%s end=%s", testType, startDate.Format(dateFormat), endDate.Format(dateFormat))
 
-	exists, filePath, err := r.CheckData(date, testType, ".json")
+	rows, err := r.db.Query(`
+		SELECT data FROM test_results
+		WHERE test_type = ? AND strftime('%Y-%m-%d', timestamp) >= ? AND strftime('%Y-%m-%d', timestamp) <= ?
+		ORDER BY timestamp DESC
+	`, testType, startDate.Format(dateFormat), endDate.Format(dateFormat))
 	if err != nil {
-		return nil, fmt.Errorf("failed to check data: %w", err)
+		return nil, err
 	}
-	if !exists {
+	defer rows.Close()
+
+	var results []*networkTesting.TestResult
+	for rows.Next() {
+		var data string
+		if err := rows.Scan(&data); err != nil {
+			return nil, err
+		}
+		result, err := unmarshalTestResult([]byte(data), testType)
+		if err != nil {
+			log.Printf("skipping malformed result: %v", err)
+			continue
+		}
+		results = append(results, result)
+	}
+	return results, rows.Err()
+}
+
+func (r *Repository) GetTestData(date, testType string) (*networkTesting.TestResult, error) {
+	log.Printf("GetTestData: type=%s date=%s", testType, date)
+
+	if _, err := time.Parse(dateFormat, date); err != nil {
+		return nil, fmt.Errorf("invalid date format: %w", err)
+	}
+
+	var data string
+	err := r.db.QueryRow(`
+		SELECT data FROM test_results
+		WHERE test_type = ? AND strftime('%Y-%m-%d', timestamp) = ?
+		ORDER BY timestamp DESC LIMIT 1
+	`, testType, date).Scan(&data)
+
+	if err == sql.ErrNoRows {
 		return nil, nil
 	}
-
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	result := &networkTesting.TestResult{}
-
-	switch testType {
-	case "icmp":
-		var r *networkTesting.ICMPTestResult
-		if err := json.Unmarshal(content, &r); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal ICMP JSON: %w", err)
-		}
-		result.ICMP = r
-	case "download":
-		var r *networkTesting.AverageSpeedTestResult
-		if err := json.Unmarshal(content, &r); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
-		}
-		result.Download = r
-	case "upload":
-		var r *networkTesting.AverageSpeedTestResult
-		if err := json.Unmarshal(content, &r); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Speed JSON: %w", err)
-		}
-		result.Upload = r
-	case "latency":
-		var r *networkTesting.LatencyTestResult
-		if err := json.Unmarshal(content, &r); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Latency JSON: %w", err)
-		}
-		result.Latency = r
-	case "bandwidth":
-		var r *networkTesting.BandwidthTestResult
-		if err := json.Unmarshal(content, &r); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Bandwidth JSON: %w", err)
-		}
-		result.Bandwidth = r
-	case "route":
-		var r *networkTesting.RouteTestResult
-		if err := json.Unmarshal(content, &r); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Bandwidth JSON: %w", err)
-		}
-		result.Route = r
-	default:
-		return nil, fmt.Errorf("unsupported test type: %s", testType)
-	}
-
-	return result, nil
-}
-
-func (r *Repository) GetChartInRange(startDate time.Time, endDate time.Time, testType string) (bool, string, error) {
-	log.Printf("GetChartInRange called with startDate: %s, endDate: %s, testType: %s",
-		startDate.Format(dateFormat), endDate.Format(dateFormat), testType)
-
-	// Try each date from newest to oldest
-	for d := endDate; !d.Before(startDate); d = d.AddDate(0, 0, -1) {
-		dateStr := d.Format(dateFormat)
-
-		exists, filePath, err := r.GetChart(dateStr, testType)
-		if err != nil {
-			log.Printf("Error getting chart for date %s: %v", dateStr, err)
-			continue
-		}
-
-		if exists {
-			log.Printf("Found chart for date %s: %s", dateStr, filePath)
-			return true, filePath, nil
-		}
-	}
-
-	log.Printf("No charts found between %s and %s",
-		startDate.Format(dateFormat), endDate.Format(dateFormat))
-	return false, "", nil
-}
-
-func (r *Repository) GetChart(date string, testType string) (bool, string, error) {
-	log.Printf("GetChartOnDate called with date: %s, testType: %s", date, testType)
-
-	return r.CheckData(date, testType, ".html")
-}
-
-func (r *Repository) MapTestFilesByTimestamp(date, testType string) (map[string][]string, error) {
-	testPath := filepath.Join(r.baseDir, date, testType)
-	files, err := os.ReadDir(testPath)
 	if err != nil {
 		return nil, err
 	}
 
-	timestampRegex := regexp.MustCompile(`\d{6}`)
-	fileMap := make(map[string][]string)
-
-	for _, file := range files {
-		matches := timestampRegex.FindAllString(file.Name(), -1)
-		if len(matches) > 0 {
-			timestamp := matches[len(matches)-1]
-			path := filepath.Join(testPath, file.Name())
-			fileMap[timestamp] = append(fileMap[timestamp], path)
-		}
-	}
-
-	return fileMap, nil
+	return unmarshalTestResult([]byte(data), testType)
 }
 
-func (r *Repository) CheckData(date, testType, fileExtension string) (bool, string, error) {
-	log.Printf("CheckData called with date: %s, testType: %s, fileExtension: %s",
-		date, testType, fileExtension)
-
-	targetDate, err := time.Parse(dateFormat, date)
-	if err != nil {
+func (r *Repository) GetChart(date, testType string) (bool, string, error) {
+	if _, err := time.Parse(dateFormat, date); err != nil {
 		return false, "", fmt.Errorf("invalid date format: %w", err)
 	}
 
-	// Construct the path for the specific date
-	datePath := filepath.Join(r.baseDir, targetDate.Format(dateFormat))
-	testPath := filepath.Join(datePath, testType)
+	var id int64
+	err := r.db.QueryRow(`
+		SELECT id FROM charts
+		WHERE test_type = ? AND strftime('%Y-%m-%d', timestamp) = ?
+		ORDER BY timestamp DESC LIMIT 1
+	`, testType, date).Scan(&id)
 
-	// Check if the directory exists
-	if _, err := os.Stat(testPath); os.IsNotExist(err) {
-		log.Printf("Directory does not exist: %s", testPath)
+	if err == sql.ErrNoRows {
 		return false, "", nil
 	}
-
-	var mostRecentPath string
-	var mostRecentTime time.Time
-
-	err = filepath.Walk(testPath, func(filePath string, fileInfo os.FileInfo, err error) error {
-		if err != nil {
-			return nil
-		}
-		if !fileInfo.IsDir() && strings.HasSuffix(filePath, fileExtension) {
-			log.Printf("Found file: %s", filePath)
-			if mostRecentPath == "" || fileInfo.ModTime().After(mostRecentTime) {
-				mostRecentPath = filePath
-				mostRecentTime = fileInfo.ModTime()
-			}
-		}
-		return nil
-	})
-
 	if err != nil {
-		return false, "", fmt.Errorf("error finding file: %w", err)
+		return false, "", err
 	}
 
-	log.Printf("CheckDataForDate returned: %t, %s", mostRecentPath != "", mostRecentPath)
-	return mostRecentPath != "", mostRecentPath, nil
+	return true, fmt.Sprintf("/charts/view?id=%d", id), nil
+}
+
+func (r *Repository) GetChartInRange(startDate, endDate time.Time, testType string) (bool, string, error) {
+	var id int64
+	err := r.db.QueryRow(`
+		SELECT id FROM charts
+		WHERE test_type = ? AND strftime('%Y-%m-%d', timestamp) >= ? AND strftime('%Y-%m-%d', timestamp) <= ?
+		ORDER BY timestamp DESC LIMIT 1
+	`, testType, startDate.Format(dateFormat), endDate.Format(dateFormat)).Scan(&id)
+
+	if err == sql.ErrNoRows {
+		return false, "", nil
+	}
+	if err != nil {
+		return false, "", err
+	}
+
+	return true, fmt.Sprintf("/charts/view?id=%d", id), nil
+}
+
+// MapTestsByTimestamp returns test results grouped by timestamp for a given date and type.
+func (r *Repository) MapTestsByTimestamp(date, testType string) (map[string]*TestRecord, error) {
+	rows, err := r.db.Query(`
+		SELECT tr.id, strftime('%H%M%S', tr.timestamp) AS ts_key, tr.data,
+		       c.id AS chart_id, c.chart_type
+		FROM test_results tr
+		LEFT JOIN charts c ON c.result_id = tr.id
+		WHERE tr.test_type = ? AND DATE(tr.timestamp) = ?
+		ORDER BY tr.timestamp DESC
+	`, testType, date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	records := make(map[string]*TestRecord)
+
+	for rows.Next() {
+		var resultID int64
+		var tsKey, data string
+		var chartID sql.NullInt64
+		var chartType sql.NullString
+
+		if err := rows.Scan(&resultID, &tsKey, &data, &chartID, &chartType); err != nil {
+			return nil, err
+		}
+
+		if _, exists := records[tsKey]; !exists {
+			records[tsKey] = &TestRecord{
+				TestJSON:   data,
+				ChartPaths: make(map[string]string),
+			}
+		}
+
+		if chartID.Valid && chartType.Valid {
+			records[tsKey].ChartPaths[chartType.String] = fmt.Sprintf("/charts/view?id=%d", chartID.Int64)
+		}
+	}
+
+	return records, rows.Err()
+}
+
+func (r *Repository) GetChartHTML(id int64) (string, error) {
+	var html string
+	err := r.db.QueryRow(`SELECT html_content FROM charts WHERE id = ?`, id).Scan(&html)
+	if err == sql.ErrNoRows {
+		return "", fmt.Errorf("chart not found")
+	}
+	return html, err
+}
+
+func unmarshalTestResult(data []byte, testType string) (*networkTesting.TestResult, error) {
+	result := &networkTesting.TestResult{}
+	switch testType {
+	case "icmp":
+		var v networkTesting.ICMPTestResult
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal ICMP JSON: %w", err)
+		}
+		result.ICMP = &v
+	case "download":
+		var v networkTesting.AverageSpeedTestResult
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal download JSON: %w", err)
+		}
+		result.Download = &v
+	case "upload":
+		var v networkTesting.AverageSpeedTestResult
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal upload JSON: %w", err)
+		}
+		result.Upload = &v
+	case "latency":
+		var v networkTesting.LatencyTestResult
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal latency JSON: %w", err)
+		}
+		result.Latency = &v
+	case "bandwidth":
+		var v networkTesting.BandwidthTestResult
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal bandwidth JSON: %w", err)
+		}
+		result.Bandwidth = &v
+	case "route":
+		var v networkTesting.RouteTestResult
+		if err := json.Unmarshal(data, &v); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal route JSON: %w", err)
+		}
+		result.Route = &v
+	default:
+		return nil, fmt.Errorf("unsupported test type: %s", testType)
+	}
+	return result, nil
 }
