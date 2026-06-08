@@ -1,32 +1,43 @@
 {{define "test_quadrant"}}
 <div id="test-quadrant" class="quadrant">
     <div id="date-sidebar" class="sidebar">
-        {{range .Dates}}
-            <div class="sidebar-item-group sidebar-button"> 
-                
-                <button 
-                    hx-get="/dashboard/tests?date={{.}}" 
-                    hx-target="#test-results"
-                    hx-include="#test-selection select"
-                    class="sidebar-main-action" {{/* New class for the inner button */}}
-                >
-                    {{.}}
-                </button>
-                
-                <button 
-                    class="btn sidebar-delete-btn delete-icon-circle" 
-                    hx-delete="/networktest/delete?date={{.}}"
-                    hx-confirm="Are you sure you want to permanently delete ALL test data for {{.}}? This action cannot be reversed."
-                    hx-on::after-request="if(event.detail.successful) { window.location.reload(); }"
-                    
-                    title="Permanently delete data for {{.}}"
-                >
-                    🗑️
-                </button>
-            </div>
-        {{end}}
+
+        {{/* scrollable list of dates */}}
+        <div class="sidebar-dates">
+            {{range .Dates}}
+                <div class="sidebar-item-group sidebar-button">
+
+                    <button
+                        hx-get="/dashboard/tests?date={{.}}"
+                        hx-target="#test-results"
+                        hx-include="#test-selection select"
+                        class="sidebar-main-action"
+                    >
+                        {{.}}
+                    </button>
+
+                    <button
+                        class="btn sidebar-delete-btn delete-icon-circle"
+                        hx-delete="/networktest/delete?date={{.}}"
+                        hx-confirm="Are you sure you want to permanently delete ALL test data for {{.}}? This action cannot be reversed."
+                        hx-on::after-request="if(event.detail.successful) { window.location.reload(); }"
+                        title="Permanently delete data for {{.}}"
+                    >
+                        🗑️
+                    </button>
+                </div>
+            {{end}}
+        </div>
+
+        {{/* pinned settings footer */}}
+        <div class="sidebar-footer">
+            <button type="button" class="settings-btn" onclick="showSettingsModal()" title="Settings">
+                <span class="gear">⚙</span>
+                <span class="label">Settings</span>
+            </button>
+        </div>
     </div>
-    
+
     <div class="content-area">
         <div id="test-selection">
             {{template "test_selection" .}}
@@ -36,14 +47,43 @@
         </div>
     </div>
 </div>
+
+{{/* ---- Settings modal (theme switcher) ---- */}}
+<div id="settings-modal" class="modal">
+    <div class="modal-content">
+        <h3>Settings</h3>
+
+        <div class="settings-section">
+            <span class="settings-label">Theme</span>
+            <div class="theme-options">
+                <button type="button" class="theme-option" data-pref="light">
+                    <span class="theme-icon">☀</span>
+                    Light
+                </button>
+                <button type="button" class="theme-option" data-pref="dark">
+                    <span class="theme-icon">☾</span>
+                    Dark
+                </button>
+                <button type="button" class="theme-option" data-pref="system">
+                    <span class="theme-icon">🖥</span>
+                    System
+                </button>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="submit-btn" onclick="closeSettingsModal()">Done</button>
+        </div>
+    </div>
+</div>
 {{end}}
 
 {{define "test_selection"}}
-    <select hx-get="/dashboard/tests?date={{.SelectedDate}}&refresh_dropdown=false" 
-            hx-trigger="change" 
-            hx-target="#test-results" 
+    <select hx-get="/dashboard/tests?date={{.SelectedDate}}&refresh_dropdown=false"
+            hx-trigger="change"
+            hx-target="#test-results"
             hx-include="this"
-            name="type" 
+            name="type"
             class="">
         {{range .TestTypes}}
             <option value="{{.}}" {{if eq . $.SelectedType}}selected{{end}}>{{.}}</option>
@@ -55,10 +95,10 @@
     {{if .TestGroups}}
         <div class="test-groups-accordion">
             {{$groupCount := len .TestGroups}}
-            <button class="carousel-nav prev" 
+            <button class="carousel-nav prev"
                     onclick="moveCarousel(-1)"
                     {{if le $groupCount 1}}disabled{{end}}>←</button>
-            <button class="carousel-nav next" 
+            <button class="carousel-nav next"
                     onclick="moveCarousel(1)"
                     {{if le $groupCount 1}}disabled{{end}}>→</button>
             <div class="carousel-container">
@@ -73,9 +113,13 @@
                                     <iframe src="{{$path}}" width="100%" frameborder="0"></iframe>
                                 {{end}}
                             </div>
-                            <div class="data-section">
+                            <details class="data-section" open>
+                                <summary class="data-summary">
+                                    <span>Raw data</span>
+                                    <svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+                                </summary>
                                 <pre>{{printf "%+v" $group.TestResult}}</pre>
-                            </div>
+                            </details>
                         </div>
                     </div>
                 {{end}}

@@ -28,21 +28,20 @@ func printBanner() {
 
 func main() {
 	printBanner()
-	ip := "0.0.0.0"
-
-	err := os.MkdirAll("data/output/", 0755)
-	if err != nil {
-		log.Fatalf("failed to create directory structure: %e", err)
-	}
 
 	conf, err := config.NewConfig("config/config.json")
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	err = os.MkdirAll("data/output/", 0755)
+	if err != nil {
+		log.Fatalf("failed to create directory structure: %e", err)
+	}
+
 	repository := dataManagement.NewRepository("data/output", conf)
 	tester := networkTesting.NewNetworkTester(conf)
-	scheduler := scheduler.NewScheduler("http://"+ip+conf.Port, conf.Scheduler.Schedule)
+	scheduler := scheduler.NewScheduler("http://"+conf.Ip+conf.Port, conf.Scheduler.Schedule)
 
 	schedulerHandler := handler.NewSchedulerHandler(scheduler)
 	networkTestHandler := handler.NewNetworkTestHandler(tester, repository)
@@ -57,6 +56,9 @@ func main() {
 
 	mux.HandleFunc("/health", middleware.LoggingMiddleware(utilHandler.HealthCheck))
 
+	mux.HandleFunc("/", middleware.LoggingMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/dashboard/", http.StatusMovedPermanently)
+	}))
 	mux.HandleFunc("/dashboard/", middleware.LoggingMiddleware(dashboardHandler.ServeDashboard))
 	mux.HandleFunc("/dashboard/tests", middleware.LoggingMiddleware(dashboardHandler.ServeTestQuadrant))
 	mux.HandleFunc("/dashboard/schedule", middleware.LoggingMiddleware(dashboardHandler.ServeSchedule))
@@ -83,11 +85,11 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	mux.PrintRoutes(ip, conf.Port)
+	mux.PrintRoutes(conf.Ip, conf.Port)
 
 	scheduler.Start()
 	defer scheduler.Stop()
-	log.Printf("Server accessible on http://%s%s\n", ip, conf.Port)
+	log.Printf("Server accessible on http://%s%s\n", conf.Ip, conf.Port)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

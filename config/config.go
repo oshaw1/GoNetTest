@@ -6,6 +6,8 @@ import (
 )
 
 type Config struct {
+	Ip string `json:"ip"`
+
 	Port string `json:"port"`
 
 	// UI Settings
@@ -72,6 +74,10 @@ func NewConfig(filepath string) (*Config, error) {
 
 	if config.Scheduler.Schedule == "" {
 		config.Scheduler.Schedule = "data/schedule.json"
+	}
+
+	if config.Ip == "" {
+		config.Ip = "0.0.0.0" // Default to port 7000
 	}
 
 	if config.Port == "" {
