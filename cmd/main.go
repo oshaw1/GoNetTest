@@ -48,6 +48,7 @@ func main() {
 	chartHandler := handler.NewChartHandler(repository, conf)
 	utilHandler := &handler.UtilHandler{}
 	dashboardHandler := handler.NewDashboardHandler(repository, "internal/pageGeneration/templates/*.gohtml", scheduler)
+	configHandler := handler.NewConfigHandler(conf, "config/config.json")
 
 	mux := middleware.NewRouteMux()
 
@@ -76,6 +77,8 @@ func main() {
 	mux.HandleFunc("/schedule/import", middleware.LoggingMiddleware(schedulerHandler.HandleImportSchedule))
 	mux.HandleFunc("/schedule/delete", middleware.LoggingMiddleware(schedulerHandler.HandleDeleteSchedule))
 	mux.HandleFunc("/schedule/edit", middleware.LoggingMiddleware(schedulerHandler.HandleEditSchedule))
+
+	mux.HandleFunc("/config", middleware.LoggingMiddleware(configHandler.ServeHTTP))
 
 	server := &http.Server{
 		Handler:      mux,

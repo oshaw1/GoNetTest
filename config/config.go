@@ -5,6 +5,14 @@ import (
 	"os"
 )
 
+func Save(filepath string, cfg *Config) error {
+	data, err := json.MarshalIndent(cfg, "", "    ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath, data, 0644)
+}
+
 type Config struct {
 	Ip string `json:"ip"`
 
@@ -28,7 +36,7 @@ type TestConfigs struct {
 	ICMP          ICMPConfig      `json:"icmp"`
 	SpeedTestURLs SpeedTestURLs   `json:"speedTestURLs"`
 	RouteTest     RouteConfig     `json:"routeTest"`
-	LatencyTest   LatencyConfig   `json:"latencyTest"`
+	LatencyTest   LatencyConfig   `json:"jitterTest"`
 	Bandwidth     BandwidthConfig `json:"bandwidth"`
 }
 
@@ -42,8 +50,8 @@ type ICMPConfig struct {
 }
 
 type SpeedTestURLs struct {
-	DownloadURLs []string `json"downloadUrls"`
-	UploadURLs   []string `json"uploadUrls"`
+	DownloadURLs []string `json:"downloadUrls"`
+	UploadURLs   []string `json:"uploadUrls"`
 }
 
 type RouteConfig struct {
@@ -61,9 +69,9 @@ type LatencyConfig struct {
 type BandwidthConfig struct {
 	InitialConnections int     `json:"initialConnections"`
 	MaxConnections     int     `json:"maxConnections"`
-	StepSize           int     `json:"stepSize"`
+	StepSize           int     `json:"rampUpStep"`
 	FailThreshold      float64 `json:"failThreshold"`
-	DownloadURL        string  `json"downloadUrl"`
+	DownloadURL        string  `json:"downloadUrl"`
 }
 
 func NewConfig(filepath string) (*Config, error) {

@@ -731,10 +731,12 @@ body {
 .modal-content {
   position: relative;
   background-color: var(--surface);
-  margin: 8% auto;
+  margin: 4% auto;
   padding: 2rem;
   width: 90%;
   max-width: 600px;
+  max-height: 88vh;
+  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
@@ -760,6 +762,72 @@ body {
   text-transform: uppercase;
   letter-spacing: .06em;
   color: var(--ink-soft);
+}
+
+/* settings: collapsible test config sections */
+.settings-collapsible {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  margin-bottom: .5rem;
+  overflow: hidden;
+}
+
+.settings-collapsible-header {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .6rem .85rem;
+  background-color: var(--surface-2);
+  font-size: .82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+  user-select: none;
+  transition: background-color .15s var(--ease), color .15s var(--ease);
+}
+.settings-collapsible-header::-webkit-details-marker { display: none; }
+.settings-collapsible-header::marker { content: ""; }
+.settings-collapsible-header:hover { background-color: var(--surface-3); color: var(--ink); }
+.settings-collapsible-header .chev { transition: transform .2s var(--ease); flex-shrink: 0; }
+.settings-collapsible[open] .settings-collapsible-header { border-bottom: 1px solid var(--line); }
+.settings-collapsible[open] .settings-collapsible-header .chev { transform: rotate(180deg); }
+
+.settings-collapsible-body {
+  padding: .85rem .85rem .25rem;
+}
+
+/* textarea for URL lists */
+.form-group textarea {
+  width: 100%;
+  padding: .6rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  color: var(--ink);
+  background-color: var(--surface);
+  resize: vertical;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+  box-sizing: border-box;
+}
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+/* settings error message */
+.settings-error {
+  background-color: var(--danger-wash);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger-ink);
+  font-size: .82rem;
+  padding: .6rem .85rem;
+  margin-bottom: 1rem;
 }
 
 .theme-options { display: flex; gap: .6rem; }

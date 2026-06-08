@@ -48,7 +48,7 @@
     </div>
 </div>
 
-{{/* ---- Settings modal (theme switcher) ---- */}}
+{{/* ---- Settings modal ---- */}}
 <div id="settings-modal" class="modal">
     <div class="modal-content">
         <h3>Settings</h3>
@@ -71,8 +71,128 @@
             </div>
         </div>
 
+        <div class="settings-section">
+            <span class="settings-label">Dashboard</span>
+            <div class="form-group">
+                <label for="cfg-recentDays">Recent Days</label>
+                <input type="number" id="cfg-recentDays" min="1" max="365" placeholder="7">
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <span class="settings-label">Test Configuration</span>
+
+            <details class="settings-collapsible">
+                <summary class="settings-collapsible-header">
+                    ICMP
+                    <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+                </summary>
+                <div class="settings-collapsible-body">
+                    <div class="form-group">
+                        <label for="cfg-icmp-packetCount">Packet Count</label>
+                        <input type="number" id="cfg-icmp-packetCount" min="1" placeholder="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-icmp-timeoutSeconds">Timeout (s)</label>
+                        <input type="number" id="cfg-icmp-timeoutSeconds" min="1" placeholder="2">
+                    </div>
+                </div>
+            </details>
+
+            <details class="settings-collapsible">
+                <summary class="settings-collapsible-header">
+                    Speed Test URLs
+                    <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+                </summary>
+                <div class="settings-collapsible-body">
+                    <div class="form-group">
+                        <label for="cfg-downloadUrls">Download URLs (one per line)</label>
+                        <textarea id="cfg-downloadUrls" rows="3" placeholder="https://..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-uploadUrls">Upload URLs (one per line)</label>
+                        <textarea id="cfg-uploadUrls" rows="3" placeholder="https://..."></textarea>
+                    </div>
+                </div>
+            </details>
+
+            <details class="settings-collapsible">
+                <summary class="settings-collapsible-header">
+                    Route Test
+                    <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+                </summary>
+                <div class="settings-collapsible-body">
+                    <div class="form-group">
+                        <label for="cfg-route-target">Target</label>
+                        <input type="text" id="cfg-route-target" placeholder="8.8.8.8">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-route-maxHops">Max Hops</label>
+                        <input type="number" id="cfg-route-maxHops" min="1" max="255" placeholder="30">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-route-timeoutSeconds">Timeout (s)</label>
+                        <input type="number" id="cfg-route-timeoutSeconds" min="1" placeholder="5">
+                    </div>
+                </div>
+            </details>
+
+            <details class="settings-collapsible">
+                <summary class="settings-collapsible-header">
+                    Jitter Test
+                    <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+                </summary>
+                <div class="settings-collapsible-body">
+                    <div class="form-group">
+                        <label for="cfg-jitter-target">Target</label>
+                        <input type="text" id="cfg-jitter-target" placeholder="8.8.8.8">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-jitter-packetCount">Packet Count</label>
+                        <input type="number" id="cfg-jitter-packetCount" min="1" placeholder="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-jitter-timeoutSeconds">Timeout (s)</label>
+                        <input type="number" id="cfg-jitter-timeoutSeconds" min="1" placeholder="5">
+                    </div>
+                </div>
+            </details>
+
+            <details class="settings-collapsible">
+                <summary class="settings-collapsible-header">
+                    Bandwidth
+                    <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+                </summary>
+                <div class="settings-collapsible-body">
+                    <div class="form-group">
+                        <label for="cfg-bw-initialConnections">Initial Connections</label>
+                        <input type="number" id="cfg-bw-initialConnections" min="1" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-bw-maxConnections">Max Connections</label>
+                        <input type="number" id="cfg-bw-maxConnections" min="1" placeholder="32">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-bw-rampUpStep">Ramp-Up Step</label>
+                        <input type="number" id="cfg-bw-rampUpStep" min="1" placeholder="2">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-bw-failThreshold">Fail Threshold (%)</label>
+                        <input type="number" id="cfg-bw-failThreshold" min="0" max="100" step="1" placeholder="80">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-bw-downloadUrl">Download URL</label>
+                        <input type="text" id="cfg-bw-downloadUrl" placeholder="https://...">
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div id="settings-save-error" class="settings-error" style="display:none"></div>
+
         <div class="form-actions">
-            <button type="button" class="submit-btn" onclick="closeSettingsModal()">Done</button>
+            <button type="button" class="cancel-btn" onclick="closeSettingsModal()">Cancel</button>
+            <button type="button" class="submit-btn" onclick="saveSettingsConfig()">Save</button>
         </div>
     </div>
 </div>

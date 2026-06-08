@@ -24,7 +24,7 @@
         "routeTest": {
             "target": "8.8.8.8",
             "maxHops": 30,
-            "timeoutSeconds": 5
+            "timeoutSeconds": 10
         },
         "jitterTest": {
             "target": "8.8.8.8",
@@ -36,10 +36,10 @@
             "maxConnections": 32,
             "rampUpStep": 2,
             "failThreshold": 80,
-            "downloadUrl":"http://ipv4.download.thinkbroadband.com/100MB.zip"
+            "downloadUrl": "http://ipv4.download.thinkbroadband.com/100MB.zip"
         }
     },
     "scheduler": {
-        "path_to_schedule" : "data/schedule.json"
+        "path_to_schedule": "data/schedule.json"
     }
 }
