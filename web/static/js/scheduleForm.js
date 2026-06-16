@@ -19,9 +19,10 @@ window.showModal = function() {
         
         // Reset form
         form.reset();
+        if (window.ThemedSelect) window.ThemedSelect.refreshAll(form);
         updateFieldVisibility();
     }
-    
+
     // Update modal title
     const modalTitle = document.querySelector('#task-modal h3');
     if (modalTitle) {
@@ -93,6 +94,7 @@ window.closeModal = function() {
     const form = document.querySelector('.task-form');
     if (form) {
         form.reset();
+        if (window.ThemedSelect) window.ThemedSelect.refreshAll(form);
         updateFieldVisibility();
     }
     isEditMode = false;
@@ -165,6 +167,10 @@ function populateForm(task) {
         activeCheckbox.checked = task.active !== undefined ? task.active : true;
     }
     
+    // Resync themed dropdowns now that values were set programmatically
+    // (form.reset()/select.value= don't fire a "change" event on their own)
+    if (window.ThemedSelect) window.ThemedSelect.refreshAll(document.querySelector('.task-form'));
+
     // Update field visibility based on populated data
     updateFieldVisibility();
     

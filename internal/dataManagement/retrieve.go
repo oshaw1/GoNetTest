@@ -14,6 +14,7 @@ import (
 type TestRecord struct {
 	TestJSON   string
 	ChartPaths map[string]string // chart_type -> "/charts/view?id=X"
+	Historic   bool              // true if this is an aggregate historic chart, not a single test run
 }
 
 func (r *Repository) GetTestDataInRange(startDate, endDate time.Time, testType string) ([]*networkTesting.TestResult, error) {
@@ -147,8 +148,48 @@ func (r *Repository) MapTestsByTimestamp(date, testType string) (map[string]*Tes
 			records[tsKey].ChartPaths[chartType.String] = fmt.Sprintf("/charts/view?id=%d", chartID.Int64)
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
-	return records, rows.Err()
+	// Historic charts aren't tied to a single test run (no result_id), so
+	// the join above never picks them up — pull them in separately, grouped
+	// by the second they were generated, same as a regular run's charts.
+	historicRows, err := r.db.Query(`
+		SELECT strftime('%H%M%S', timestamp) AS ts_key, id, chart_type, source_data
+		FROM charts
+		WHERE test_type = ? AND result_id IS NULL AND strftime('%Y-%m-%d', timestamp) = ?
+		ORDER BY timestamp DESC
+	`, testType, date)
+	if err != nil {
+		return nil, err
+	}
+	defer historicRows.Close()
+
+	for historicRows.Next() {
+		var tsKey, chartType string
+		var chartID int64
+		var sourceData sql.NullString
+		if err := historicRows.Scan(&tsKey, &chartID, &chartType, &sourceData); err != nil {
+			return nil, err
+		}
+
+		record, exists := records[tsKey]
+		if !exists {
+			record = &TestRecord{
+				TestJSON:   "Historic chart — aggregates past test runs rather than a single result. (Underlying data unavailable for charts generated before this was tracked.)",
+				ChartPaths: make(map[string]string),
+			}
+			records[tsKey] = record
+		}
+		record.Historic = true
+		if sourceData.Valid && sourceData.String != "" {
+			record.TestJSON = sourceData.String
+		}
+		record.ChartPaths[chartType] = fmt.Sprintf("/charts/view?id=%d", chartID)
+	}
+
+	return records, historicRows.Err()
 }
 
 func (r *Repository) GetChartHTML(id int64) (string, error) {

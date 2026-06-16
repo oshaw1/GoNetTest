@@ -33,7 +33,11 @@ func (r *Repository) SaveTestResult(data interface{}, testType string) (int64, e
 	return id, nil
 }
 
-func (r *Repository) SaveChart(chart render.Renderer, testType, chartType string, resultID int64) (string, error) {
+// SaveChart renders and stores a chart. sourceData is optional — pass the
+// JSON of the data used to build the chart when it isn't otherwise
+// recoverable from a linked test result (e.g. historic charts, which
+// aggregate many past results and have no single resultID to point back to).
+func (r *Repository) SaveChart(chart render.Renderer, testType, chartType string, resultID int64, sourceData ...string) (string, error) {
 	var buf bytes.Buffer
 	if err := chart.Render(&buf); err != nil {
 		return "", fmt.Errorf("failed to render chart: %w", err)
@@ -44,9 +48,14 @@ func (r *Repository) SaveChart(chart render.Renderer, testType, chartType string
 		rid = resultID
 	}
 
+	var data interface{}
+	if len(sourceData) > 0 && sourceData[0] != "" {
+		data = sourceData[0]
+	}
+
 	res, err := r.db.Exec(
-		`INSERT INTO charts (result_id, test_type, chart_type, timestamp, html_content) VALUES (?, ?, ?, ?, ?)`,
-		rid, testType, chartType, time.Now().UTC().Format("2006-01-02 15:04:05"), buf.String(),
+		`INSERT INTO charts (result_id, test_type, chart_type, timestamp, html_content, source_data) VALUES (?, ?, ?, ?, ?, ?)`,
+		rid, testType, chartType, time.Now().UTC().Format("2006-01-02 15:04:05"), buf.String(), data,
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to save chart: %w", err)

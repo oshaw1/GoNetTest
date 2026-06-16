@@ -61,6 +61,8 @@ func main() {
 	}))
 	mux.HandleFunc("/dashboard/", middleware.LoggingMiddleware(dashboardHandler.ServeDashboard))
 	mux.HandleFunc("/dashboard/tests", middleware.LoggingMiddleware(dashboardHandler.ServeTestQuadrant))
+	mux.HandleFunc("/dashboard/tests/dates", middleware.LoggingMiddleware(dashboardHandler.ServeTestDatesSidebar))
+	mux.HandleFunc("/dashboard/tests/full", middleware.LoggingMiddleware(dashboardHandler.ServeTestQuadrantFull))
 	mux.HandleFunc("/dashboard/schedule", middleware.LoggingMiddleware(dashboardHandler.ServeSchedule))
 
 	mux.HandleFunc("/networktest", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))

@@ -55,3 +55,25 @@ func TestDeleteByDate(t *testing.T) {
 	err = repo.DeleteByDate("2000-01-01")
 	assert.Error(t, err)
 }
+
+func TestDeleteByDateHistoricChartOnly(t *testing.T) {
+	repo := newTestRepo(t)
+
+	today := time.Now().UTC().Format(dateFormat)
+
+	// A historic chart has no result_id, so this date exists only because
+	// of the chart row, not a test_results row.
+	_, err := repo.SaveChart(MockChart{}, "download", "speed_ot", 0)
+	require.NoError(t, err)
+
+	dates, err := repo.GetTestDirectories()
+	require.NoError(t, err)
+	require.Contains(t, dates, today)
+
+	err = repo.DeleteByDate(today)
+	assert.NoError(t, err)
+
+	dates, err = repo.GetTestDirectories()
+	require.NoError(t, err)
+	assert.NotContains(t, dates, today)
+}

@@ -40,11 +40,165 @@ func (g *Generator) GenerateHistoricBandwidthAnalysisCharts(results []*networkTe
 }
 
 func generateBandwidthSpeedOverTimeBar(results []*networkTesting.BandwidthTestResult) (*charts.Bar3D, error) {
-	return nil, nil
+	bar3d := charts.NewBar3D()
+
+	maxSteps := 0
+	maxSpeed := 0.0
+	for _, result := range results {
+		if len(result.Steps) > maxSteps {
+			maxSteps = len(result.Steps)
+		}
+		for _, step := range result.Steps {
+			if step.AvgSpeed > maxSpeed {
+				maxSpeed = step.AvgSpeed
+			}
+		}
+	}
+
+	bar3d.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title:    "Bandwidth Speed Over Time",
+			Subtitle: fmt.Sprintf("Test data from: %v Days", len(results)),
+		}),
+		charts.WithVisualMapOpts(opts.VisualMap{
+			Calculable: opts.Bool(true),
+			Max:        float32(maxSpeed + 25),
+			Min:        0,
+			InRange: &opts.VisualMapInRange{
+				Color: []string{"#a50026", "#d73027", "#f46d43", "#fdae61", "#fee090",
+					"#ffffbf", "#e0f3f8", "#abd9e9", "#74add1", "#4575b4", "#313695"},
+			},
+		}),
+	)
+
+	var data []opts.Chart3DData
+	for resultIdx, result := range results {
+		for stepIdx, step := range result.Steps {
+			data = append(data, opts.Chart3DData{
+				Value: []interface{}{resultIdx, stepIdx, step.AvgSpeed},
+				Name:  fmt.Sprintf("%d connections", step.Connections),
+			})
+		}
+	}
+
+	xAxis := make([]string, len(results))
+	for i, result := range results {
+		xAxis[i] = result.StartTime.Format("2006-01-02 15:04:05")
+	}
+
+	yAxis := make([]int, maxSteps)
+	for i := range yAxis {
+		yAxis[i] = i + 1
+	}
+
+	bar3d.AddSeries("Bandwidth Speed", data).
+		SetSeriesOptions(
+			charts.WithBar3DChartOpts(opts.Bar3DChart{
+				Shading: "lambert",
+			}),
+		)
+
+	bar3d.SetGlobalOptions(
+		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(false)}),
+		charts.WithXAxis3DOpts(opts.XAxis3D{
+			Name: "Timestamp",
+			Data: xAxis,
+		}),
+		charts.WithYAxis3DOpts(opts.YAxis3D{
+			Show: opts.Bool(true),
+			Data: yAxis,
+			Max:  float32(maxSteps),
+			Min:  1,
+			Name: "Step",
+			Type: "value",
+		}),
+		charts.WithZAxis3DOpts(opts.ZAxis3D{
+			Name: "Speed (Mbps)",
+		}),
+	)
+
+	return bar3d, nil
 }
 
 func generateBandwidthDurationOverTimeBar(results []*networkTesting.BandwidthTestResult) (*charts.Bar3D, error) {
-	return nil, nil
+	bar3d := charts.NewBar3D()
+
+	maxSteps := 0
+	var maxDuration time.Duration
+	for _, result := range results {
+		if len(result.Steps) > maxSteps {
+			maxSteps = len(result.Steps)
+		}
+		for _, step := range result.Steps {
+			if step.Duration > maxDuration {
+				maxDuration = step.Duration
+			}
+		}
+	}
+
+	bar3d.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title:    "Bandwidth Duration Over Time",
+			Subtitle: fmt.Sprintf("Test data from: %v Days", len(results)),
+		}),
+		charts.WithVisualMapOpts(opts.VisualMap{
+			Calculable: opts.Bool(true),
+			Max:        float32(maxDuration.Seconds()),
+			Min:        0,
+			InRange: &opts.VisualMapInRange{
+				Color: []string{"#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8",
+					"#ffffbf", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"},
+			},
+		}),
+	)
+
+	var data []opts.Chart3DData
+	for resultIdx, result := range results {
+		for stepIdx, step := range result.Steps {
+			data = append(data, opts.Chart3DData{
+				Value: []interface{}{resultIdx, stepIdx, step.Duration.Seconds()},
+				Name:  fmt.Sprintf("%d connections", step.Connections),
+			})
+		}
+	}
+
+	xAxis := make([]string, len(results))
+	for i, result := range results {
+		xAxis[i] = result.StartTime.Format("2006-01-02 15:04:05")
+	}
+
+	yAxis := make([]int, maxSteps)
+	for i := range yAxis {
+		yAxis[i] = i + 1
+	}
+
+	bar3d.AddSeries("Bandwidth Duration", data).
+		SetSeriesOptions(
+			charts.WithBar3DChartOpts(opts.Bar3DChart{
+				Shading: "lambert",
+			}),
+		)
+
+	bar3d.SetGlobalOptions(
+		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(false)}),
+		charts.WithXAxis3DOpts(opts.XAxis3D{
+			Name: "Timestamp",
+			Data: xAxis,
+		}),
+		charts.WithYAxis3DOpts(opts.YAxis3D{
+			Show: opts.Bool(true),
+			Data: yAxis,
+			Max:  float32(maxSteps),
+			Min:  1,
+			Name: "Step",
+			Type: "value",
+		}),
+		charts.WithZAxis3DOpts(opts.ZAxis3D{
+			Name: "Duration (s)",
+		}),
+	)
+
+	return bar3d, nil
 }
 
 func generateBandwidth3DBarSpeed(result *networkTesting.BandwidthTestResult) (*charts.Bar3D, error) {

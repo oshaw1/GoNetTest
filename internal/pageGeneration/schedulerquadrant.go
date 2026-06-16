@@ -10,12 +10,15 @@ import (
 type SchedulerQuadrantData struct {
 	QuadrantData
 	Schedule map[string]*scheduler.Task
+	Tasks    []scheduler.TaskEntry
+	SortBy   string
 }
 
 func (pg *PageGenerator) GenerateSchedulerQuadrant() (*SchedulerQuadrantData, error) {
 	return &SchedulerQuadrantData{
 		QuadrantData: QuadrantData{Title: "Scheduler"},
 		Schedule:     make(map[string]*scheduler.Task), // Initialize empty map
+		SortBy:       scheduler.SortByDate,
 	}, nil
 }
 

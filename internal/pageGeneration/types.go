@@ -16,4 +16,5 @@ type TestGroup struct {
 	JsonPath   string
 	TestResult interface{}
 	ChartPaths map[string]string
+	Historic   bool
 }

@@ -2,31 +2,15 @@
 <div id="test-quadrant" class="quadrant">
     <div id="date-sidebar" class="sidebar">
 
-        {{/* scrollable list of dates */}}
-        <div class="sidebar-dates">
-            {{range .Dates}}
-                <div class="sidebar-item-group sidebar-button">
-
-                    <button
-                        hx-get="/dashboard/tests?date={{.}}"
-                        hx-target="#test-results"
-                        hx-include="#test-selection select"
-                        class="sidebar-main-action"
-                    >
-                        {{.}}
-                    </button>
-
-                    <button
-                        class="btn sidebar-delete-btn delete-icon-circle"
-                        hx-delete="/networktest/delete?date={{.}}"
-                        hx-confirm="Are you sure you want to permanently delete ALL test data for {{.}}? This action cannot be reversed."
-                        hx-on::after-request="if(event.detail.successful) { window.location.reload(); }"
-                        title="Permanently delete data for {{.}}"
-                    >
-                        🗑️
-                    </button>
-                </div>
-            {{end}}
+        {{/* scrollable list of dates — polls itself only, so a new test run
+             shows up here without disturbing the results pane (charts,
+             carousel position, accordion state, etc.) */}}
+        <div id="sidebar-dates" class="sidebar-dates"
+             hx-get="/dashboard/tests/dates"
+             hx-trigger="every 10s"
+             hx-target="#sidebar-dates"
+             hx-swap="innerHTML">
+            {{template "test_dates_sidebar" .}}
         </div>
 
         {{/* pinned settings footer */}}
@@ -47,6 +31,21 @@
         </div>
     </div>
 </div>
+
+{{/* Listens for a 'testDataChanged' event (fired after deleting a date) and
+     re-renders the whole quadrant. Deliberately NOT an attribute on
+     #test-quadrant itself — hx-select/hx-target/hx-swap are inherited by
+     descendants that don't set their own, which would break the date
+     buttons' and type dropdown's own swaps (they'd inherit hx-select and
+     find nothing to select from their own responses). Living as a sibling
+     here keeps it out of that inheritance chain, and it's never itself
+     swapped, so it survives #test-quadrant being replaced. */}}
+<div id="test-quadrant-refresh-listener" style="display:none"
+     hx-get="/dashboard/tests/full"
+     hx-trigger="testDataChanged from:body"
+     hx-select="#test-quadrant"
+     hx-target="#test-quadrant"
+     hx-swap="outerHTML"></div>
 
 {{/* ---- Settings modal ---- */}}
 <div id="settings-modal" class="modal">
@@ -198,12 +197,40 @@
 </div>
 {{end}}
 
+{{define "test_dates_sidebar"}}
+    {{range .Dates}}
+        <div class="sidebar-item-group sidebar-button">
+
+            <button
+                hx-get="/dashboard/tests?date={{.}}"
+                hx-target="#test-results"
+                hx-include="#test-selection select"
+                class="sidebar-main-action"
+            >
+                {{.}}
+            </button>
+
+            <button
+                class="btn sidebar-delete-btn delete-icon-circle"
+                hx-delete="/networktest/delete?date={{.}}"
+                hx-confirm="Are you sure you want to permanently delete ALL test data for {{.}}? This action cannot be reversed."
+                hx-swap="none"
+                hx-on::after-request="if(event.detail.successful) { htmx.trigger(document.body, 'testDataChanged'); }"
+                title="Permanently delete data for {{.}}"
+            >
+                🗑️
+            </button>
+        </div>
+    {{end}}
+{{end}}
+
 {{define "test_selection"}}
     <select hx-get="/dashboard/tests?date={{.SelectedDate}}&refresh_dropdown=false"
             hx-trigger="change"
             hx-target="#test-results"
             hx-include="this"
             name="type"
+            data-themed-select
             class="">
         {{range .TestTypes}}
             <option value="{{.}}" {{if eq . $.SelectedType}}selected{{end}}>{{.}}</option>
@@ -223,9 +250,9 @@
                     {{if le $groupCount 1}}disabled{{end}}>→</button>
             <div class="carousel-container">
                 {{range $index, $group := .TestGroups}}
-                    <div class="accordion-item">
+                    <div class="accordion-item{{if $group.Historic}} accordion-item-historic{{end}}">
                         <div class="accordion-header">
-                            Test Group: {{$group.TimeGroup}}
+                            {{if $group.Historic}}Historic Chart{{else}}Test Group: {{$group.TimeGroup}}{{end}}
                         </div>
                         <div class="accordion-content">
                             <div class="chart-section">

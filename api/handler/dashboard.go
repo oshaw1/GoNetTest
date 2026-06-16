@@ -53,6 +53,34 @@ func (h *DashboardHandler) ServeTestQuadrant(w http.ResponseWriter, r *http.Requ
 	h.generator.RenderTestResults(w, data)
 }
 
+// ServeTestDatesSidebar returns just the date list fragment, used by the
+// sidebar's own self-poll so new dates show up without re-rendering (and
+// disrupting) the results pane.
+func (h *DashboardHandler) ServeTestDatesSidebar(w http.ResponseWriter, r *http.Request) {
+	dates, err := h.repository.GetTestDirectories()
+	if err != nil {
+		handleError(w, "Error retrieving test dates", err, 500)
+		return
+	}
+
+	h.generator.RenderTestDatesSidebar(w, &pageGeneration.TestQuadrantData{Dates: dates})
+}
+
+// ServeTestQuadrantFull re-renders the entire test-quadrant (sidebar, type
+// selector and results) from scratch with no date/type pinned, so it falls
+// back to whatever is now the latest date. Used after a destructive change
+// like deleting a date, where the previously-selected date/type may no
+// longer exist.
+func (h *DashboardHandler) ServeTestQuadrantFull(w http.ResponseWriter, r *http.Request) {
+	data, err := h.generator.GenerateTestQuadrant("", "")
+	if err != nil {
+		handleError(w, "Error generating test data", err, 500)
+		return
+	}
+
+	h.generator.RenderTestQuadrant(w, data)
+}
+
 func (h *DashboardHandler) ServeSchedule(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -65,9 +93,16 @@ func (h *DashboardHandler) ServeSchedule(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	sortBy := r.URL.Query().Get("sort")
+	if sortBy == "" {
+		sortBy = scheduler.SortByDate
+	}
+	schedulerData.SortBy = sortBy
+
 	if h.scheduler != nil {
 		h.scheduler.Mu.RLock()
 		schedulerData.Schedule = h.scheduler.Schedule
+		schedulerData.Tasks = scheduler.SortTasks(h.scheduler.Schedule, sortBy)
 		h.scheduler.Mu.RUnlock()
 
 		h.generator.RenderSchedule(w, schedulerData)

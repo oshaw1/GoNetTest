@@ -3,23 +3,34 @@
     <div class="content-area">
         <div class="scheduler-header">
             <h2>Task Scheduler</h2>
-            <button
-                class="add-task-btn"
-                onclick="showModal()">
-                Add Task
-            </button>
+            <div class="scheduler-header-actions">
+                <div class="scheduler-sort">
+                    <label for="schedule-sort">Sort by</label>
+                    <select id="schedule-sort" name="sort" data-themed-select>
+                        <option value="date" selected>Date</option>
+                        <option value="type">Action Type</option>
+                        <option value="last_ran">Last Ran</option>
+                    </select>
+                </div>
+                <button
+                    class="add-task-btn"
+                    onclick="showModal()">
+                    Add Task
+                </button>
+            </div>
         </div>
 
         <div id="schedule-loader" class="htmx-indicator">
             <img src="/web/static/images/hamster.gif" alt="Loading..." class="loading-spinner">
             <p>Loading schedule data...</p>
         </div>
-        
-        <div 
+
+        <div
             id="schedule-list"
             class="schedule-list"
             hx-get="/dashboard/schedule"
-            hx-trigger="load, taskChanged from:body"
+            hx-trigger="load, taskChanged from:body, change from:#schedule-sort"
+            hx-include="#schedule-sort"
             hx-indicator="#schedule-loader">
             <!-- Schedule items will be loaded here via HTMX -->
         </div>
@@ -58,7 +69,7 @@
 
             <div class="form-group test-field">
                 <label for="test_type">Test Type</label>
-                <select id="test_type" name="test_type">
+                <select id="test_type" name="test_type" data-themed-select>
                     <option value="">Select test type</option>
                     <option value="icmp">ICMP</option>
                     <option value="download">Download</option>
@@ -71,7 +82,7 @@
 
             <div class="form-group chart-field" style="display: none;">
                 <label for="chart_type">Chart Type</label>
-                <select id="chart_type" name="chart_type">
+                <select id="chart_type" name="chart_type" data-themed-select>
                     <option value="">Select chart type</option>
                     <option value="icmp">ICMP</option>
                     <option value="download">Download</option>
@@ -108,7 +119,7 @@
 
             <div class="form-group" id="interval-group" style="display: none;">
                 <label for="interval">Interval</label>
-                <select id="interval" name="interval">
+                <select id="interval" name="interval" data-themed-select>
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>

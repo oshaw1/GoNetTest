@@ -408,6 +408,7 @@ body {
   font-weight: 600;
   letter-spacing: .03em;
   border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
   border-radius: var(--radius-sm);
   margin-bottom: 1rem;
   color: var(--ink);
@@ -583,6 +584,139 @@ body {
 }
 
 .add-task-btn:hover { background-color: var(--teal-ink); transform: translateY(-1px); }
+
+.scheduler-header-actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.scheduler-sort {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.scheduler-sort label {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   Themed select — fully custom-styled dropdown (the native option list
+   can't be restyled cross-browser, so this builds its own listbox).
+   The original <select> stays in the DOM, hidden, as the source of truth
+   for forms/htmx (see themedSelect.js).
+   --------------------------------------------------------------------- */
+.themed-select {
+  position: relative;
+  display: inline-block;
+}
+
+.themed-select-native {
+  position: absolute;
+  inset: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.themed-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  gap: .5rem;
+  padding: .5rem .65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--ink);
+  background-color: var(--surface);
+  cursor: pointer;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+
+.themed-select-trigger:hover { border-color: var(--accent); }
+
+.themed-select.is-open .themed-select-trigger,
+.themed-select-native:focus-visible + .themed-select-trigger {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+.themed-select-caret {
+  color: var(--ink-faint);
+  transition: transform .15s var(--ease);
+  flex-shrink: 0;
+}
+
+.themed-select.is-open .themed-select-caret { transform: rotate(180deg); }
+
+/* Positioned (top/left/bottom/min-width) by themedSelect.js from the
+   trigger's bounding rect — it's appended directly to <body> while open
+   (a "portal"), so no ancestor's overflow/stacking context can clip or
+   cover it. z-index is comfortably above the task modal (1000). */
+.themed-select-options {
+  position: fixed;
+  z-index: 2000;
+  margin: 0;
+  padding: .35rem;
+  list-style: none;
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(-4px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .15s var(--ease), transform .15s var(--ease);
+}
+
+.themed-select-options.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.themed-select-options li {
+  padding: .5rem .65rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.themed-select-options li:hover { background-color: var(--accent-wash); color: var(--accent-ink); }
+
+.themed-select-options li.is-selected {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+/* themed-select width per context — the wrapper is inline-block (shrinks
+   to fit) by default; these spots want it to fill its row like the old
+   native <select> did. */
+#test-selection .themed-select,
+.form-group .themed-select {
+  display: block;
+  width: 100%;
+}
+
+#test-selection .themed-select-trigger,
+#test-selection .themed-select-options li {
+  text-transform: capitalize;
+}
 
 /* ---------------------------------------------------------------------
    Schedule list / task cards
@@ -1145,7 +1279,9 @@ body {
 
 .test-controls select,
 .chart-controls select,
-.chart-controls input {
+.chart-controls input,
+.test-controls .themed-select-trigger,
+.chart-controls .themed-select-trigger {
   padding: .6rem .7rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -1159,6 +1295,13 @@ body {
 .test-controls select:focus,
 .chart-controls select:focus,
 .chart-controls input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+.test-controls .themed-select.is-open .themed-select-trigger,
+.chart-controls .themed-select.is-open .themed-select-trigger {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-wash);
@@ -1520,7 +1663,9 @@ body.has-fullscreen-quadrant { overflow: hidden; }
   }
   .test-controls select,
   .chart-controls select,
-  .chart-controls input {
+  .chart-controls input,
+  .test-controls .themed-select,
+  .chart-controls .themed-select {
     width: 100%;
     margin-bottom: .4rem;
   }
@@ -1534,7 +1679,8 @@ body.has-fullscreen-quadrant { overflow: hidden; }
     align-items: center;
     gap: .5rem;
   }
-  #historic-chart-controls select {
+  #historic-chart-controls select,
+  #historic-chart-controls .themed-select {
     flex: 1 1 100%;
     width: 100%;
     margin: 0;
@@ -1560,8 +1706,10 @@ body.has-fullscreen-quadrant { overflow: hidden; }
   .chart-type-btn { flex: 1; }
 
   /* scheduler titles shrink slightly */
-  .scheduler-header { padding: .85rem 5.25rem .85rem 1rem; }
+  .scheduler-header { padding: .85rem 5.25rem .85rem 1rem; flex-wrap: wrap; row-gap: .6rem; }
   .scheduler-header h2 { font-size: 1.1rem; }
+  .scheduler-header-actions { flex-wrap: wrap; gap: .5rem; }
+  .themed-select-trigger { font-size: .8rem; padding: .45rem .6rem; }
   .add-task-btn { padding: .5rem .8rem; }
 
   .task-header { flex-wrap: wrap; }

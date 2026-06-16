@@ -59,6 +59,7 @@ func (g *PageGenerator) GenerateTestQuadrant(selectedDate, selectedType string) 
 				TimeGroup:  timestamp,
 				TestResult: record.TestJSON,
 				ChartPaths: record.ChartPaths,
+				Historic:   record.Historic,
 			})
 		}
 
@@ -94,6 +95,10 @@ func (pg *PageGenerator) RenderTestQuadrant(w http.ResponseWriter, data *TestQua
 
 func (pg *PageGenerator) RenderTestSelection(w http.ResponseWriter, data *TestQuadrantData) error {
 	return pg.templates.ExecuteTemplate(w, "test_selection", data)
+}
+
+func (pg *PageGenerator) RenderTestDatesSidebar(w http.ResponseWriter, data *TestQuadrantData) error {
+	return pg.templates.ExecuteTemplate(w, "test_dates_sidebar", data)
 }
 
 func (pg *PageGenerator) RenderTestResults(w http.ResponseWriter, data *TestQuadrantData) error {
