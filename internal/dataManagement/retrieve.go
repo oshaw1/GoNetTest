@@ -12,8 +12,10 @@ import (
 
 // TestRecord holds a test result and its associated chart URLs for a single test run.
 type TestRecord struct {
+	ResultID   int64             // test_results.id; zero for historic-only records
 	TestJSON   string
 	ChartPaths map[string]string // chart_type -> "/charts/view?id=X"
+	ChartIDs   []int64           // charts.id for each chart in ChartPaths; used to delete historic charts directly
 	Historic   bool              // true if this is an aggregate historic chart, not a single test run
 }
 
@@ -139,6 +141,7 @@ func (r *Repository) MapTestsByTimestamp(date, testType string) (map[string]*Tes
 
 		if _, exists := records[tsKey]; !exists {
 			records[tsKey] = &TestRecord{
+				ResultID:   resultID,
 				TestJSON:   data,
 				ChartPaths: make(map[string]string),
 			}
@@ -187,6 +190,7 @@ func (r *Repository) MapTestsByTimestamp(date, testType string) (map[string]*Tes
 			record.TestJSON = sourceData.String
 		}
 		record.ChartPaths[chartType] = fmt.Sprintf("/charts/view?id=%d", chartID)
+		record.ChartIDs = append(record.ChartIDs, chartID)
 	}
 
 	return records, historicRows.Err()

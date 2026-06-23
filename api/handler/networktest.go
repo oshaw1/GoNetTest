@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/oshaw1/go-net-test/internal/charting"
@@ -102,11 +104,13 @@ func (h *NetworkTestHandler) runAndSaveTest(testType string) (interface{}, error
 		return nil, fmt.Errorf("failed to save test result: %w", err)
 	}
 
-	go func() {
-		if err := h.generateAndSaveCharts(result, testType, resultID); err != nil {
-			log.Printf("Chart generation failed: %v", err)
-		}
-	}()
+	// Generated synchronously (not fire-and-forget) so the chart is already
+	// saved by the time the response goes back — callers that trigger a UI
+	// refresh on completion (e.g. the dashboard's quick-test button) would
+	// otherwise race the chart write and refresh too early.
+	if err := h.generateAndSaveCharts(result, testType, resultID); err != nil {
+		log.Printf("Chart generation failed: %v", err)
+	}
 
 	return result, nil
 }
@@ -208,6 +212,47 @@ func (h *NetworkTestHandler) HandleDeleteTests(w http.ResponseWriter, r *http.Re
 	}
 
 	if err := h.repository.DeleteByDate(date); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *NetworkTestHandler) HandleDeleteTestResult(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "Missing or invalid id property", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.repository.DeleteByID(id); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *NetworkTestHandler) HandleDeleteCharts(w http.ResponseWriter, r *http.Request) {
+	idsParam := r.URL.Query().Get("ids")
+	if idsParam == "" {
+		http.Error(w, "Missing ids property", http.StatusBadRequest)
+		return
+	}
+
+	parts := strings.Split(idsParam, ",")
+	ids := make([]int64, 0, len(parts))
+	for _, p := range parts {
+		id, err := strconv.ParseInt(p, 10, 64)
+		if err != nil {
+			http.Error(w, "Invalid ids property", http.StatusBadRequest)
+			return
+		}
+		ids = append(ids, id)
+	}
+
+	if err := h.repository.DeleteChartsByIDs(ids); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

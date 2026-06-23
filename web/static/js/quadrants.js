@@ -74,10 +74,16 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function buildAll() {
     var quads = document.querySelectorAll(".dashboard .quadrant");
     for (var i = 0; i < quads.length; i++) build(quads[i]);
-  });
+  }
+
+  document.addEventListener("DOMContentLoaded", buildAll);
+
+  // htmx swaps (e.g. outerHTML-replacing #test-quadrant after a delete)
+  // drop in fresh server HTML without the JS-injected toolbar — rebuild it.
+  document.body.addEventListener("htmx:afterSwap", buildAll);
 
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") clearFullscreen();

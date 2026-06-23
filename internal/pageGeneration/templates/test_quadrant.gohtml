@@ -252,7 +252,28 @@
                 {{range $index, $group := .TestGroups}}
                     <div class="accordion-item{{if $group.Historic}} accordion-item-historic{{end}}">
                         <div class="accordion-header">
-                            {{if $group.Historic}}Historic Chart{{else}}Test Group: {{$group.TimeGroup}}{{end}}
+                            <span>{{if $group.Historic}}Historic Chart{{else}}Test Group: {{$group.TimeGroup}}{{end}}</span>
+                            {{if $group.Historic}}
+                                <button
+                                    type="button"
+                                    class="btn accordion-delete-btn"
+                                    hx-delete="/networktest/delete-chart?ids={{$group.ChartIDs}}"
+                                    hx-confirm="Delete this historic chart? This action cannot be reversed."
+                                    hx-swap="none"
+                                    hx-on::after-request="if(event.detail.successful) { htmx.trigger(document.body, 'testDataChanged'); }"
+                                    title="Delete this historic chart"
+                                >🗑️</button>
+                            {{else}}
+                                <button
+                                    type="button"
+                                    class="btn accordion-delete-btn"
+                                    hx-delete="/networktest/delete-result?id={{$group.ResultID}}"
+                                    hx-confirm="Delete this test result and its chart? This action cannot be reversed."
+                                    hx-swap="none"
+                                    hx-on::after-request="if(event.detail.successful) { htmx.trigger(document.body, 'testDataChanged'); }"
+                                    title="Delete this test result"
+                                >🗑️</button>
+                            {{end}}
                         </div>
                         <div class="accordion-content">
                             <div class="chart-section">
@@ -260,13 +281,13 @@
                                     <iframe src="{{$path}}" width="100%" frameborder="0"></iframe>
                                 {{end}}
                             </div>
-                            <details class="data-section" open>
-                                <summary class="data-summary">
-                                    <span>Raw data</span>
-                                    <svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
-                                </summary>
-                                <pre>{{printf "%+v" $group.TestResult}}</pre>
-                            </details>
+                                <details class="data-section" open>
+                                    <summary class="data-summary">
+                                        <span>Raw data</span>
+                                        <svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+                                    </summary>
+                                    <pre class="scrollable-pre">{{printf "%+v" $group.TestResult}}</pre>
+                                </details>
                         </div>
                     </div>
                 {{end}}

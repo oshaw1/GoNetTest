@@ -36,6 +36,7 @@
               hx-target="#quick-test-results"
               hx-indicator="#control-main-container"
               hx-trigger="click"
+              hx-on::after-request="if(event.detail.successful) { htmx.trigger(document.body, 'testDataChanged'); }"
               class="btn btn-primary"
             >
             &raquo;
@@ -59,6 +60,7 @@
               hx-get="/charts/generate"
               hx-indicator="#control-main-container"
               hx-target="#quick-test-results"
+              hx-on::after-request="if(event.detail.successful) { htmx.trigger(document.body, 'testDataChanged'); }"
             >
               <select id="chart-test-type" name="test" data-themed-select>
                 <option value="icmp">ICMP</option>
@@ -90,6 +92,7 @@
               hx-get="/charts/generate-historic"
               hx-indicator="#control-main-container"
               hx-target="#quick-test-results"
+              hx-on::after-request="if(event.detail.successful) { htmx.trigger(document.body, 'testDataChanged'); }"
             >
               <select id="historic-test-type" name="test" data-themed-select>
                 <option value="icmp">ICMP</option>

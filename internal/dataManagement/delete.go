@@ -1,6 +1,9 @@
 package dataManagement
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // DeleteByDate removes all test results (and their associated charts via
 // CASCADE) for the given date string (format: 2006-01-02). Historic charts
@@ -26,6 +29,54 @@ func (r *Repository) DeleteByDate(date string) error {
 
 	if n == 0 && n2 == 0 {
 		return fmt.Errorf("no data found for date %s", date)
+	}
+
+	return nil
+}
+
+// DeleteByID removes a single test result by its test_results.id. Its
+// chart is removed automatically via the result_id ON DELETE CASCADE
+// foreign key.
+func (r *Repository) DeleteByID(id int64) error {
+	res, err := r.db.Exec(`DELETE FROM test_results WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete result %d: %w", id, err)
+	}
+
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("no test result found with id %d", id)
+	}
+
+	return nil
+}
+
+// DeleteChartsByIDs removes historic charts directly from the charts table.
+// Historic charts have no result_id, so there's no test result to delete
+// that would cascade to them — they must be removed by chart id instead.
+func (r *Repository) DeleteChartsByIDs(ids []int64) error {
+	if len(ids) == 0 {
+		return fmt.Errorf("no chart ids provided")
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	res, err := r.db.Exec(
+		fmt.Sprintf(`DELETE FROM charts WHERE id IN (%s)`, strings.Join(placeholders, ",")),
+		args...,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete charts: %w", err)
+	}
+
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("no charts found for given ids")
 	}
 
 	return nil

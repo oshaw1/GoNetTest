@@ -67,6 +67,8 @@ func main() {
 
 	mux.HandleFunc("/networktest", middleware.LoggingMiddleware(networkTestHandler.HandleNetworkTest))
 	mux.HandleFunc("/networktest/delete", middleware.LoggingMiddleware(networkTestHandler.HandleDeleteTests))
+	mux.HandleFunc("/networktest/delete-result", middleware.LoggingMiddleware(networkTestHandler.HandleDeleteTestResult))
+	mux.HandleFunc("/networktest/delete-chart", middleware.LoggingMiddleware(networkTestHandler.HandleDeleteCharts))
 	mux.HandleFunc("/networktest/test-results", middleware.LoggingMiddleware(networkTestHandler.GetResults))
 
 	mux.HandleFunc("/charts/view", middleware.LoggingMiddleware(chartHandler.ServeChart))

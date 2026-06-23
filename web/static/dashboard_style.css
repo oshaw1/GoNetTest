@@ -403,6 +403,10 @@ body {
 }
 
 .accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
   padding: .85rem 1rem;
   background-color: var(--surface-2);
   font-weight: 600;
@@ -412,6 +416,24 @@ body {
   border-radius: var(--radius-sm);
   margin-bottom: 1rem;
   color: var(--ink);
+}
+
+.accordion-delete-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: .3rem;
+  line-height: 1;
+  border-radius: 50%;
+  color: var(--ink-soft);
+  transition: background-color .15s var(--ease), color .15s var(--ease),
+              transform .15s var(--ease);
+}
+
+.accordion-delete-btn:hover {
+  background-color: var(--danger-wash);
+  color: var(--danger-ink);
+  transform: scale(1.12);
 }
 
 .accordion-content {
@@ -500,6 +522,7 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  max-height: calc(100vh - 42rem);
 }
 
 /* clickable header */
@@ -545,6 +568,7 @@ body {
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
+  max-height: calc(100vh - 44rem);
   flex: 1;
 }
 
@@ -707,7 +731,11 @@ body {
 /* themed-select width per context — the wrapper is inline-block (shrinks
    to fit) by default; these spots want it to fill its row like the old
    native <select> did. */
-#test-selection .themed-select,
+#test-selection .themed-select {
+  display: block;
+  width: 95%;
+}
+
 .form-group .themed-select {
   display: block;
   width: 100%;
@@ -841,6 +869,7 @@ body {
   width: 50px;
   height: 50px;
   margin-bottom: .2rem;
+  scale: 1.8;
 }
 
 .htmx-indicator p {
@@ -1356,13 +1385,14 @@ body {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   line-height: 1.5;
+  overflow-y: auto;
 }
 
 .no-results {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 70%;
   text-align: center;
 }
 .no-results p { color: var(--ink-faint); font-style: italic; margin: 0; }

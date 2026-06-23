@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strconv"
+	"strings"
 )
 
 const logPrefix = "test_quadrant"
@@ -55,8 +57,15 @@ func (g *PageGenerator) GenerateTestQuadrant(selectedDate, selectedType string) 
 		log.Printf("%s: Found %d time groups for test type %s", logPrefix, len(recordMap), selectedType)
 
 		for timestamp, record := range recordMap {
+			chartIDs := make([]string, len(record.ChartIDs))
+			for i, id := range record.ChartIDs {
+				chartIDs[i] = strconv.FormatInt(id, 10)
+			}
+
 			testGroups = append(testGroups, TestGroup{
 				TimeGroup:  timestamp,
+				ResultID:   record.ResultID,
+				ChartIDs:   strings.Join(chartIDs, ","),
 				TestResult: record.TestJSON,
 				ChartPaths: record.ChartPaths,
 				Historic:   record.Historic,
