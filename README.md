@@ -66,8 +66,8 @@ WantedBy=multi-user.target
 ```
 Once this service has been configured it can be started with : ```sudo systemctl start gonettest```  
 
-## Low Level System Architecture Diagram -
+## Low Level System Architecture Diagram (Used for intiial development - currently out of date) -
 ![Network Testing Webapp System ARCH](https://github.com/user-attachments/assets/d4563d27-be0a-4aad-b78e-80f2e9b19865)
 
-## Application Flow Diagram -
+## Application Flow Diagram (Used for intiial development - currently out of date) -
 ![Network Testing Application Flow](https://github.com/user-attachments/assets/272cf95b-0e15-4226-8ec4-3e1b6e47495d)
