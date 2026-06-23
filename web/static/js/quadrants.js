@@ -81,9 +81,16 @@
 
   document.addEventListener("DOMContentLoaded", buildAll);
 
-  // htmx swaps (e.g. outerHTML-replacing #test-quadrant after a delete)
-  // drop in fresh server HTML without the JS-injected toolbar — rebuild it.
-  document.body.addEventListener("htmx:afterSwap", buildAll);
+  // htmx swaps (e.g. outerHTML-replacing #test-quadrant after a delete, or
+  // a quick test/chart run) drop in fresh server HTML without the
+  // JS-injected toolbar. Listening for specific htmx events is brittle
+  // (depends on exactly which element/swap style fired them), so instead
+  // watch the DOM directly: any time a .quadrant loses its .quadrant-bar,
+  // put it back. build() is a no-op if the bar is already there.
+  var dashboard = document.querySelector(".dashboard");
+  if (dashboard && window.MutationObserver) {
+    new MutationObserver(buildAll).observe(dashboard, { childList: true, subtree: true });
+  }
 
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") clearFullscreen();
